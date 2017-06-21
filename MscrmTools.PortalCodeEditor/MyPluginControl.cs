@@ -21,8 +21,9 @@ namespace MscrmTools.PortalCodeEditor
 
         private List<EditablePortalItem> portalItems;
         private Settings mySettings;
+        private bool isLegacyPortal;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -33,7 +34,7 @@ namespace MscrmTools.PortalCodeEditor
             portalItems = new List<EditablePortalItem>();
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Properties
 
@@ -41,7 +42,7 @@ namespace MscrmTools.PortalCodeEditor
         public string UserName => "MscrmTools";
         public string HelpUrl => "https://github.com/MscrmTools/MscrmTools.PortalCodeEditor/wiki";
 
-        #endregion
+        #endregion Properties
 
         #region This events
 
@@ -53,19 +54,21 @@ namespace MscrmTools.PortalCodeEditor
                 mySettings = new Settings();
             }
         }
-        
+
         private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
         {
             // Before leaving, save the settings
             SettingsManager.Instance.Save(GetType(), mySettings);
         }
 
-        #endregion
+        #endregion This events
 
         #region Treeview events
 
         private void ctv_PortalItemSelected(object sender, PortalItemSelectedEventArgs e)
         {
+            tcCodeContents.Padding = new Point(20, tcCodeContents.Padding.Y);
+
             if (e.Item != null)
             {
                 var key = $"{e.Item.Parent.Name}{e.Item.Type}";
@@ -82,19 +85,15 @@ namespace MscrmTools.PortalCodeEditor
                     tab = new TabPage
                     {
                         Text = e.Item.Parent.Name,
-                        Name = $"{e.Item.Parent.Name}{e.Item.Type}",
-                        Tag = e.Item
+                        Name = key,
+                        Tag = e.Item,
+                        Width = TextRenderer.MeasureText(e.Item.Parent.Name, tcCodeContents.Font).Width + 40
                     };
 
-                    var ce = new CodeEditor(e.Item, mySettings)
+                    var ce = new CodeEditorScintilla(e.Item, mySettings)
                     {
                         Dock = DockStyle.Fill
                     };
-
-                    if (ce.FoldingEnabled)
-                    {
-                        tsbDoFolding.Checked = true;
-                    }
 
                     tab.Controls.Add(ce);
                     tcCodeContents.TabPages.Add(tab);
@@ -135,7 +134,7 @@ namespace MscrmTools.PortalCodeEditor
 
                         foreach (var page in tcCodeContents.TabPages.Cast<TabPage>().Where(p => p.Tag == item))
                         {
-                            ((CodeEditor)page.Controls[0]).RefreshContent(item.Content);
+                            ((CodeEditorScintilla)page.Controls[0]).RefreshContent(item.Content);
                         }
                     }
                 }
@@ -148,14 +147,14 @@ namespace MscrmTools.PortalCodeEditor
 
                         foreach (var page in tcCodeContents.TabPages.Cast<TabPage>().Where(p => p.Tag == ci))
                         {
-                            ((CodeEditor)page.Controls[0]).RefreshContent(ci.Content);
+                            ((CodeEditorScintilla)page.Controls[0]).RefreshContent(ci.Content);
                         }
                     }
                 }
             }
         }
 
-        #endregion
+        #endregion Treeview events
 
         #region Main menu events
 
@@ -166,6 +165,17 @@ namespace MscrmTools.PortalCodeEditor
 
         private void tsbLoadItems_Click(object sender, EventArgs e)
         {
+            if (tcCodeContents.TabCount > 0)
+            {
+                var message =
+                    $"Reloading items will close the {tcCodeContents.TabCount} item{(tcCodeContents.TabCount > 1 ? "s" : "")} opened.\n\nAre you sure you want to reload items?";
+                if (MessageBox.Show(this, message, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) ==
+                    DialogResult.No)
+                    return;
+            }
+
+            tcCodeContents.TabPages.Clear();
+
             ExecuteMethod(LoadItems);
         }
 
@@ -181,13 +191,17 @@ namespace MscrmTools.PortalCodeEditor
                     bw.ReportProgress(0, "Loading Web pages...");
                     portalItems.AddRange(WebPage.GetItems(Service));
                     bw.ReportProgress(0, "Loading Entity forms...");
-                    portalItems.AddRange(EntityForm.GetItems(Service));
+                    portalItems.AddRange(EntityForm.GetItems(Service, ref isLegacyPortal));
+                    bw.ReportProgress(0, "Loading Entity lists...");
+                    portalItems.AddRange(EntityList.GetItems(Service, ref isLegacyPortal));
                     bw.ReportProgress(0, "Loading Web templates...");
-                    portalItems.AddRange(WebTemplate.GetItems(Service));
+                    portalItems.AddRange(WebTemplate.GetItems(Service, ref isLegacyPortal));
                     bw.ReportProgress(0, "Loading Web files...");
                     portalItems.AddRange(WebFile.GetItems(Service));
+                    bw.ReportProgress(0, "Loading Web form steps...");
+                    portalItems.AddRange(WebFormStep.GetItems(Service));
 
-                    portalItems.SelectMany(p=> p.Items).ToList().ForEach(i =>i.StateChanged += CodeItem_StateChanged);
+                    portalItems.SelectMany(p => p.Items).ToList().ForEach(i => i.StateChanged += CodeItem_StateChanged);
                 },
                 ProgressChanged = e =>
                 {
@@ -197,8 +211,10 @@ namespace MscrmTools.PortalCodeEditor
                 {
                     if (e.Error != null)
                     {
-                        if (((FaultException<OrganizationServiceFault>) e.Error).Detail.ErrorCode == -2147217149)
+                        if (((FaultException<OrganizationServiceFault>)e.Error).Detail.ErrorCode == -2147217149)
                         {
+                            MessageBox.Show(e.Error.ToString());
+
                             var message =
                                 "Unable to load code items: Please ensure you are targeting an organization linked to a Microsoft Portal (not a legacy Adxstudio one)";
                             MessageBox.Show(this, message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -211,7 +227,7 @@ namespace MscrmTools.PortalCodeEditor
                         }
                     }
 
-                    ctv.DisplayCodeItems(portalItems);
+                    ctv.DisplayCodeItems(portalItems, isLegacyPortal);
                     ctv.Enabled = true;
                 }
             });
@@ -238,24 +254,29 @@ namespace MscrmTools.PortalCodeEditor
             message.AppendLine("\"Load items\" icon made by Gregor Cresnar from www.flaticon.com");
             message.AppendLine("\"Update\" icon made by Freepik from www.flaticon.com");
             message.AppendLine("\"Settings\" icon made by Freepik from www.flaticon.com");
+            message.AppendLine();
+            message.AppendLine("Credits for the code editor:");
+            message.AppendLine();
+            message.AppendLine("ScintillaNET from https://github.com/jacobslusser/ScintillaNET");
 
             MessageBox.Show(this, message.ToString(), "Icons credits", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        #endregion
+        #endregion Main menu events
 
         #region Code content events
 
         private void fileMenuSave_Click(object sender, EventArgs e)
         {
             var codeItem = (CodeItem)tcCodeContents.SelectedTab.Tag;
-            var codeCtrl = tcCodeContents.SelectedTab.Controls[0] as CodeEditor;
+            var codeCtrl = tcCodeContents.SelectedTab.Controls[0] as CodeEditorScintilla;
             if (codeCtrl != null)
             {
                 codeCtrl.Save();
                 codeItem.State = CodeItemState.Saved;
 
-                tcCodeContents.SelectedTab.ForeColor = Color.Blue;
+                //tcCodeContents.SelectedTab.ForeColor = Color.Blue;
+                //tcCodeContents.SelectedTab.Text = $"{codeItem.Parent.Name} !";
             }
         }
 
@@ -280,9 +301,9 @@ namespace MscrmTools.PortalCodeEditor
 
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
-            
-            var control = (CodeEditor)tcCodeContents.SelectedTab.Controls[0];
-         
+
+            var control = (CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0];
+
             control.Find(false, this);
         }
 
@@ -297,7 +318,7 @@ namespace MscrmTools.PortalCodeEditor
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
-            var control = (CodeEditor)tcCodeContents.SelectedTab.Controls[0];
+            var control = (CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0];
 
             control.Find(true, this);
         }
@@ -313,10 +334,9 @@ namespace MscrmTools.PortalCodeEditor
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
-            var control = (CodeEditor)tcCodeContents.SelectedTab.Controls[0];
+            var control = (CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0];
 
             control.GoToLine();
-
         }
 
         private void tsbMinifyJS_Click(object sender, EventArgs e)
@@ -325,10 +345,10 @@ namespace MscrmTools.PortalCodeEditor
                 return;
 
             if (DialogResult.Yes ==
-                             MessageBox.Show(this,
-                                "Are you sure you want to compress this script? After saving the compressed script, you won't be able to retrieve original content",
-                               "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
-                ((CodeEditor)tcCodeContents.SelectedTab.Controls[0]).MinifyJs();
+                MessageBox.Show(this,
+                    "Are you sure you want to compress this script? After saving the compressed script, you won't be able to retrieve original content",
+                    "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).MinifyJs();
         }
 
         private void tsbBeautify_Click(object sender, EventArgs e)
@@ -336,16 +356,7 @@ namespace MscrmTools.PortalCodeEditor
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
-            ((CodeEditor)tcCodeContents.SelectedTab.Controls[0]).Beautify();
-        }
-
-        private void tsbDoFolding_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            tsbDoFolding.Checked = !tsbDoFolding.Checked;
-            ((CodeEditor)tcCodeContents.SelectedTab.Controls[0]).EnableFolding(tsbDoFolding.Checked);
+            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).Beautify();
         }
 
         private void tsbGetLatestVersion_Click(object sender, EventArgs e)
@@ -361,7 +372,7 @@ namespace MscrmTools.PortalCodeEditor
 
             ci.Refresh(Service);
 
-            ((CodeEditor) tcCodeContents.SelectedTab.Controls[0]).RefreshContent(ci.Content);
+            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).RefreshContent(ci.Content);
         }
 
         private void tsbComment_Click(object sender, EventArgs e)
@@ -369,7 +380,7 @@ namespace MscrmTools.PortalCodeEditor
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
-            ((CodeEditor)tcCodeContents.SelectedTab.Controls[0]).CommentSelectedLines();
+            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).CommentSelectedLines();
         }
 
         private void tsbnUncomment_Click(object sender, EventArgs e)
@@ -377,10 +388,10 @@ namespace MscrmTools.PortalCodeEditor
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
-            ((CodeEditor)tcCodeContents.SelectedTab.Controls[0]).UncommentSelectedLines();
+            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).UncommentSelectedLines();
         }
 
-        #endregion
+        #endregion Code content events
 
         #region Tab management
 
@@ -394,7 +405,7 @@ namespace MscrmTools.PortalCodeEditor
                 return;
             }
 
-            lblItemSelected.Text = $"{item.Parent.Name} {(item.Parent is WebPage ? "("+item.Type+")" : "")}";
+            lblItemSelected.Text = $"{item.Parent.Name} {(item.Parent is WebPage ? "(" + item.Type + ")" : "")}";
             lblItemSelected.ForeColor = tcCodeContents.SelectedTab.ForeColor;
         }
 
@@ -438,7 +449,7 @@ namespace MscrmTools.PortalCodeEditor
             }
         }
 
-        #endregion
+        #endregion Tab management
 
         #region Other methods
 
@@ -522,11 +533,13 @@ namespace MscrmTools.PortalCodeEditor
                         tsmiSave.Enabled = false;
                         tsmiUpdate.Enabled = false;
                         break;
+
                     case CodeItemState.Draft:
                         tcCodeContents.SelectedTab.Text = $"{ci.Parent.Name} *";
                         tsmiSave.Enabled = true;
                         tsmiUpdate.Enabled = false;
                         break;
+
                     case CodeItemState.Saved:
                         tcCodeContents.SelectedTab.Text = $"{ci.Parent.Name} !";
                         tsmiSave.Enabled = false;
@@ -536,7 +549,6 @@ namespace MscrmTools.PortalCodeEditor
             }
         }
 
-        #endregion
+        #endregion Other methods
     }
 }
-

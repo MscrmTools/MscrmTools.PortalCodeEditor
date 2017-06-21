@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 using System.Windows;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -21,7 +23,8 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         {
             Code = new CodeItem(record.GetAttributeValue<string>("adx_source"), CodeItemType.JavaScript, false, this);
             Name = record.GetAttributeValue<string>("adx_name");
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid");
+            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??
+                               new EntityReference("adx_website", Guid.Empty);
 
             innerRecord = record;
 
@@ -38,15 +41,33 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebTemplate> GetItems(IOrganizationService service)
+        public static List<WebTemplate> GetItems(IOrganizationService service, ref bool isLegacyPortal)
         {
-            var records = service.RetrieveMultiple(new QueryExpression("adx_webtemplate")
+            try
             {
-                ColumnSet = new ColumnSet("adx_name", "adx_source", "adx_websiteid"),
-                Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-            }).Entities;
+                var records = service.RetrieveMultiple(new QueryExpression("adx_webtemplate")
+                {
+                    ColumnSet = new ColumnSet("adx_name", "adx_source", "adx_websiteid"),
+                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                }).Entities;
 
-            return records.Select(record => new WebTemplate(record)).ToList();
+                return records.Select(record => new WebTemplate(record)).ToList();
+            }
+            catch (FaultException<OrganizationServiceFault> ex)
+            {
+                if (ex.Detail.ErrorCode == -2147217149)
+                {
+                    isLegacyPortal = true;
+
+                    var records = service.RetrieveMultiple(new QueryExpression("adx_webtemplate")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_source"),
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+                    return records.Select(record => new WebTemplate(record)).ToList();
+                }
+                throw;
+            }
         }
 
         public override void Update(IOrganizationService service, bool forceUpdate = false)

@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
+using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
@@ -20,7 +23,8 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         {
             JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_registerstartupscript"), CodeItemType.JavaScript, false, this);
             Name = record.GetAttributeValue<string>("adx_name");
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid");
+            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??
+                               new EntityReference("adx_website", Guid.Empty);
 
             innerRecord = record;
             Items.Add(JavaScript);
@@ -36,15 +40,35 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<EntityForm> GetItems(IOrganizationService service)
+        public static List<EntityForm> GetItems(IOrganizationService service, ref bool isLegacyPortal)
         {
-            var records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+            try
             {
-                ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
-                Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-            }).Entities;
+                var records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                {
+                    ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
+                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                }).Entities;
 
-            return records.Select(record => new EntityForm(record)).ToList();
+                return records.Select(record => new EntityForm(record)).ToList();
+            }
+            catch (FaultException<OrganizationServiceFault> ex)
+            {
+                if (ex.Detail.ErrorCode == -2147217149)
+                {
+                    isLegacyPortal = true;
+
+                    var records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript"),
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+
+                    return records.Select(record => new EntityForm(record)).ToList();
+                }
+
+                throw;
+            }
         }
 
         public override void Update(IOrganizationService service, bool forceUpdate = false)

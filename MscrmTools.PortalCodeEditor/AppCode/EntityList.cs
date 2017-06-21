@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using System.ServiceModel;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -12,7 +14,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         private readonly Entity innerRecord;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -20,31 +22,52 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         {
             JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_registerstartupscript"), CodeItemType.JavaScript, false, this);
             Name = record.GetAttributeValue<string>("adx_name");
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid");
+            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??
+                               new EntityReference("adx_website", Guid.Empty);
 
             innerRecord = record;
             Items.Add(JavaScript);
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Properties
 
         public CodeItem JavaScript { get; }
 
-        #endregion
+        #endregion Properties
 
         #region Methods
 
-        public static List<EntityForm> GetItems(IOrganizationService service)
+        public static List<EntityList> GetItems(IOrganizationService service, ref bool isLegacyPortal)
         {
-            var records = service.RetrieveMultiple(new QueryExpression("adx_entitylist")
+            try
             {
-                ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
-                Orders = {new OrderExpression("adx_name", OrderType.Ascending)}
-            }).Entities;
+                var records = service.RetrieveMultiple(new QueryExpression("adx_entitylist")
+                {
+                    ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
+                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                }).Entities;
 
-            return records.Select(record => new EntityForm(record)).ToList();
+                return records.Select(record => new EntityList(record)).ToList();
+            }
+            catch (FaultException<OrganizationServiceFault> ex)
+            {
+                if (ex.Detail.ErrorCode == -2147217149)
+                {
+                    isLegacyPortal = true;
+
+                    var records = service.RetrieveMultiple(new QueryExpression("adx_entitylist")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript"),
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+
+                    return records.Select(record => new EntityList(record)).ToList();
+                }
+
+                throw;
+            }
         }
 
         public override void Update(IOrganizationService service, bool forceUpdate = false)
@@ -76,6 +99,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             return record.GetAttributeValue<string>("adx_registerstartupscript");
         }
 
-        #endregion
+        #endregion Methods
     }
 }

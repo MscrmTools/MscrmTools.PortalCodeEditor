@@ -6,8 +6,8 @@ namespace MscrmTools.PortalCodeEditor.Controls
 {
     public class CustomTabControl : TabControl
     {
-        const int LEADING_SPACE = 12;
-        const int CLOSE_AREA = 15;
+        private const int LEADING_SPACE = 12;
+        private const int CLOSE_AREA = 15;
 
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
@@ -17,7 +17,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 base.OnDrawItem(e);
                 return;
             }
-            
+
             if (e.Index == SelectedIndex)
             {
                 e.Graphics.FillRectangle(new SolidBrush(Color.DarkGray), e.Bounds);
@@ -27,9 +27,10 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 ? Color.Red
                 : ci.State == CodeItemState.Saved ? Color.Blue : Color.Black;
 
-            //This code will render a "x" mark at the end of the Tab caption. 
+            //This code will render a "x" mark at the end of the Tab caption.
             e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - CLOSE_AREA, e.Bounds.Top + 4);
-            e.Graphics.DrawString(TabPages[e.Index].Text, e.Font, new SolidBrush(color), e.Bounds.Left + LEADING_SPACE, e.Bounds.Top + 4);
+            //e.Graphics.DrawString(TabPages[e.Index].Text, e.Font, new SolidBrush(color), e.Bounds.Left + LEADING_SPACE, e.Bounds.Top + 4);
+            e.Graphics.DrawString(ci.Parent.Name, e.Font, new SolidBrush(color), e.Bounds.Left + LEADING_SPACE, e.Bounds.Top + 4);
             e.DrawFocusRectangle();
         }
 
@@ -79,4 +80,3 @@ namespace MscrmTools.PortalCodeEditor.Controls
         }
     }
 }
-

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
@@ -46,13 +47,30 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public static List<WebPage> GetItems(IOrganizationService service)
         {
-            var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+            try
             {
-                ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid"),
-                Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-            }).Entities;
+                var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                {
+                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid"),
+                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                }).Entities;
 
-            return records.Select(record => new WebPage(record)).ToList();
+                return records.Select(record => new WebPage(record)).ToList();
+            }
+            catch (FaultException<OrganizationServiceFault> ex)
+            {
+                if (ex.Detail.ErrorCode == -2147217149)
+                {
+                    var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid"),
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+
+                    return records.Select(record => new WebPage(record)).ToList();
+                }
+                throw;
+            }
         }
 
         public override void Update(IOrganizationService service, bool forceUpdate = false)

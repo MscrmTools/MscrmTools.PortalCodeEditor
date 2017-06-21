@@ -1,5 +1,7 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
+using Microsoft.Xrm.Sdk;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -68,6 +70,21 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 }
             }
         }
+
+        public static T GetAliasedValue<T>(this Entity record, string alias, string attribute)
+        {
+            var aliasedValue = record.GetAttributeValue<AliasedValue>($"{alias}.{attribute}");
+            if (aliasedValue == null)
+            {
+                return default(T);
+            }
+
+            if (aliasedValue.Value is T)
+            {
+                return (T)aliasedValue.Value;
+            }
+
+            throw new Exception($"{alias}.{attribute} is not of type {typeof(T)}");
+        }
     }
 }
-

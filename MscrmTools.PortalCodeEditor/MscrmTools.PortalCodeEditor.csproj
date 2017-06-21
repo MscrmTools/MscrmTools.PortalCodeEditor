@@ -38,10 +38,6 @@
       <HintPath>..\packages\HtmlAgilityPack.1.4.9.5\lib\Net45\HtmlAgilityPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ICSharpCode.AvalonEdit, Version=5.0.3.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
-      <HintPath>..\packages\AvalonEdit.5.0.3\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="McTools.Xrm.Connection, Version=1.2017.2.12, Culture=neutral, PublicKeyToken=96037217801d9658, processorArchitecture=MSIL">
       <HintPath>..\packages\MscrmTools.Xrm.Connection.1.2017.2.12\lib\net452\McTools.Xrm.Connection.dll</HintPath>
       <Private>True</Private>
@@ -92,6 +88,10 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="ScintillaNET, Version=3.6.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\jacobslusser.ScintillaNET.3.6.3\lib\net40\ScintillaNET.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
     <Reference Include="System.Activities.Presentation" />
@@ -140,8 +140,9 @@
   <ItemGroup>
     <Compile Include="AppCode\CodeItem.cs" />
     <Compile Include="AppCode\EditablePortalItem.cs" />
+    <Compile Include="AppCode\WebFormStep.cs" />
+    <Compile Include="AppCode\EntityList.cs" />
     <Compile Include="AppCode\Extensions.cs" />
-    <Compile Include="AppCode\HtmlFoldingStrategy.cs" />
     <Compile Include="AppCode\JsBeautifier\Beautifier.cs" />
     <Compile Include="AppCode\JsBeautifier\BeautifierFlags.cs" />
     <Compile Include="AppCode\JsBeautifier\BeautifierOptions.cs" />
@@ -150,11 +151,11 @@
     <Compile Include="AppCode\WebTemplate.cs" />
     <Compile Include="AppCode\EntityForm.cs" />
     <Compile Include="AppCode\WebPage.cs" />
-    <Compile Include="Controls\CodeEditor.cs">
+    <Compile Include="Controls\CodeEditorScintilla.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Controls\CodeEditor.Designer.cs">
-      <DependentUpon>CodeEditor.cs</DependentUpon>
+    <Compile Include="Controls\CodeEditorScintilla.Designer.cs">
+      <DependentUpon>CodeEditorScintilla.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\CodeTreeView.cs">
       <SubType>UserControl</SubType>
@@ -168,17 +169,23 @@
     </Compile>
     <Compile Include="AppCode\EventArgs\PortalItemSelectedEventArgs.cs" />
     <Compile Include="AppCode\EventArgs\UpdatePendingChangesEventArgs.cs" />
-    <Compile Include="Forms\FindAndReplaceForm.cs">
+    <Compile Include="Forms\CharacterRange.cs" />
+    <Compile Include="Forms\FindReplace\FindOption.cs" />
+    <Compile Include="Forms\FindReplace\FindReplace.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Forms\FindReplace\FindReplaceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\FindAndReplaceForm.designer.cs">
-      <DependentUpon>FindAndReplaceForm.cs</DependentUpon>
+    <Compile Include="Forms\FindReplace\FindReplaceDialog.Designer.cs">
+      <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\GoToLineDialog.cs">
+    <Compile Include="Forms\GoTo\GoTo.cs" />
+    <Compile Include="Forms\GoTo\GoToDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\GoToLineDialog.designer.cs">
-      <DependentUpon>GoToLineDialog.cs</DependentUpon>
+    <Compile Include="Forms\GoTo\GoToDialog.Designer.cs">
+      <DependentUpon>GoToDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\SettingsDialog.cs">
       <SubType>Form</SubType>
@@ -204,20 +211,22 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Controls\CodeEditor.resx">
-      <DependentUpon>CodeEditor.cs</DependentUpon>
+    <EmbeddedResource Include="Controls\CodeEditorScintilla.resx">
+      <DependentUpon>CodeEditorScintilla.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\CodeTreeView.resx">
       <DependentUpon>CodeTreeView.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FindAndReplaceForm.resx">
-      <DependentUpon>FindAndReplaceForm.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\FindReplace\FindReplaceDialog.resx">
+      <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\GoToLineDialog.resx">
-      <DependentUpon>GoToLineDialog.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\GoTo\GoToDialog.resx">
+      <DependentUpon>GoToDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\SettingsDialog.resx">
       <DependentUpon>SettingsDialog.cs</DependentUpon>
@@ -232,8 +241,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>IF NOT EXIST Plugins mkdir Plugins
-"$(SolutionDir)packages\LibZ.Tool.1.2.0.0\tools\libz.exe" inject-dll --assembly "$(TargetPath)" --include MscrmTools.PortalCodeEditor.dll --include ICSharpCode.AvalonEdit.dll --include Yahoo.Yui.Compressor.dll --include EcmaScript.NET.dll --include HtmlAgilityPack.dll</PostBuildEvent>
+    <PostBuildEvent>IF NOT EXIST merged mkdir merged
+"$(SolutionDir)packages\ILMerge.2.14.1208\tools\ILMerge.exe" /targetplatform:v4,"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0" /lib:"C:\Windows\Microsoft.Net\Framework64\v4.0.30319" /out:"$(TargetDir)Merged\$(TargetFileName)" $(TargetFileName)  $(TargetDir)EcmaScript.NET.dll $(TargetDir)HtmlAgilityPack.dll $(TargetDir)ScintillaNET.dll $(TargetDir)Yahoo.Yui.Compressor.dll</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

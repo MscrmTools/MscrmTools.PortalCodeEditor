@@ -27,6 +27,8 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
         public object SelectedItem => tvCodeItems.SelectedNode?.Tag;
 
+        public bool IsLegacyPortal { get; set; }
+
         public CodeTreeView()
         {
             InitializeComponent();
@@ -39,13 +41,17 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
         public event EventHandler ActionRequested;
 
-        public void DisplayCodeItems(List<EditablePortalItem> items)
+        public void DisplayCodeItems(List<EditablePortalItem> items, bool isLegacyPortal)
         {
+            IsLegacyPortal = isLegacyPortal;
             portalItems = items;
             tvCodeItems.Nodes.Clear();
             var rootNodes = new Dictionary<Guid, TreeNode>();
-            rootNodes.Add(Guid.Empty, new TreeNode("(Global)"));
-            rootNodes[Guid.Empty].Nodes.Add(new TreeNode("Web Form Steps") { Name = "WebFormStep" });
+
+            if (isLegacyPortal)
+            {
+                rootNodes.Add(Guid.Empty, new TreeNode("(Not website related)"));
+            }
 
             var searchText = txtSearch.Text.ToLower();
             var filteredItems = items.Where(i => searchText.Length == 0
@@ -74,7 +80,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 }
                 else
                 {
-                    var name = websiteReference.Id == Guid.Empty ? "(Global)" : websiteReference.Name;
+                    var name = websiteReference.Id == Guid.Empty ? "(Not website related)" : websiteReference.Name;
                     var rootNode = new TreeNode(name);
 
                     rootNodes.Add(websiteReference.Id, rootNode);
@@ -82,9 +88,15 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     parentNode = rootNode;
 
                     parentNode.Nodes.Add(new TreeNode("Web Pages") { Name = "WebPage" });
-                    parentNode.Nodes.Add(new TreeNode("Entity Forms") { Name = "EntityForm" });
-                    parentNode.Nodes.Add(new TreeNode("Entity Lists") { Name = "EntityList" });
-                    parentNode.Nodes.Add(new TreeNode("Web Templates") { Name = "WebTemplate" });
+
+                    if (!IsLegacyPortal)
+                    {
+                        parentNode.Nodes.Add(new TreeNode("Entity Forms") { Name = "EntityForm" });
+                        parentNode.Nodes.Add(new TreeNode("Entity Lists") { Name = "EntityList" });
+                        parentNode.Nodes.Add(new TreeNode("Web Forms") { Name = "WebForm" });
+                        parentNode.Nodes.Add(new TreeNode("Web Templates") { Name = "WebTemplate" });
+                    }
+
                     parentNode.Nodes.Add(new TreeNode("Web Files") { Name = "WebFile" });
                 }
 
@@ -114,6 +126,12 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 {
                     typeNode = parentNode.Nodes["EntityForm"];
 
+                    if (typeNode == null)
+                    {
+                        typeNode = new TreeNode("Entity Forms") { Name = "EntityForm" };
+                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                    }
+
                     EntityForm form = (EntityForm)item;
                     form.JavaScript.StateChanged += JavaScript_StateChanged;
 
@@ -125,6 +143,12 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 else if (item is EntityList)
                 {
                     typeNode = parentNode.Nodes["EntityList"];
+
+                    if (typeNode == null)
+                    {
+                        typeNode = new TreeNode("Entity Lists") { Name = "EntityList" };
+                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                    }
 
                     EntityList list = (EntityList)item;
                     list.JavaScript.StateChanged += JavaScript_StateChanged;
@@ -138,6 +162,12 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 {
                     typeNode = parentNode.Nodes["WebTemplate"];
 
+                    if (typeNode == null)
+                    {
+                        typeNode = new TreeNode("Web Templates") { Name = "WebTemplate" };
+                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                    }
+
                     WebTemplate template = (WebTemplate)item;
                     template.Code.StateChanged += JavaScript_StateChanged;
 
@@ -150,6 +180,12 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 {
                     typeNode = parentNode.Nodes["WebFile"];
 
+                    if (typeNode == null)
+                    {
+                        typeNode = new TreeNode("Web Files") { Name = "WebFile" };
+                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                    }
+
                     WebFile file = (WebFile)item;
                     file.Code.StateChanged += JavaScript_StateChanged;
 
@@ -160,7 +196,13 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 }
                 else if (item is WebFormStep)
                 {
-                    typeNode = parentNode.Nodes["WebFormStep"];
+                    typeNode = parentNode.Nodes["WebForm"];
+
+                    if (typeNode == null)
+                    {
+                        typeNode = new TreeNode("Web Forms") { Name = "WebForm" };
+                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                    }
 
                     WebFormStep wfStep = (WebFormStep)item;
                     wfStep.JavaScript.StateChanged += JavaScript_StateChanged;
@@ -168,7 +210,30 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     var node = new TreeNode(wfStep.Name) { Tag = wfStep.JavaScript };
                     wfStep.JavaScript.Node = node;
 
-                    typeNode.Nodes.Add(node);
+                    if (wfStep.WebFormReference != null)
+                    {
+                        TreeNode webFormNode;
+
+                        if (typeNode.Nodes.ContainsKey(wfStep.WebFormReference.Name))
+                        {
+                            webFormNode = typeNode.Nodes[wfStep.WebFormReference.Name];
+                        }
+                        else
+                        {
+                            webFormNode = new TreeNode(wfStep.WebFormReference.Name)
+                            {
+                                Name = wfStep.WebFormReference.Name
+                            };
+
+                            typeNode.Nodes.Add(webFormNode);
+                        }
+
+                        webFormNode.Nodes.Add(node);
+                    }
+                    else
+                    {
+                        typeNode.Nodes.Add(node);
+                    }
                 }
                 else
                 {
@@ -183,7 +248,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 ApplyCounting(node, "EntityList");
                 ApplyCounting(node, "WebTemplate");
                 ApplyCounting(node, "WebFile");
-                ApplyCounting(node, "WebFormStep");
+                ApplyCounting(node, "WebForm");
 
                 tvCodeItems.Nodes.Add(node);
                 node.Expand();
@@ -337,7 +402,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
             tvCodeItems.Invoke(new Action(() =>
             {
                 tvCodeItems.Nodes.Clear();
-                DisplayCodeItems(portalItems);
+                DisplayCodeItems(portalItems, IsLegacyPortal);
             }));
         }
 
