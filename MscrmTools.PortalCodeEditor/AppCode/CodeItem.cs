@@ -17,7 +17,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
     public enum CodeItemType
     {
         JavaScript,
-        Style, 
+        Style,
         LiquidTemplate
     }
 
@@ -31,7 +31,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         private CodeItemState state;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -49,7 +49,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             if (isEncoded)
             {
-                EncodedContent = data;
+                encodedContent = data;
                 content = Encoding.UTF8.GetString(Convert.FromBase64String(data));
             }
             else
@@ -58,7 +58,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             }
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Properties
 
@@ -70,7 +70,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
                 return encodedContent;
             }
-        } 
+        }
 
         public string Content
         {
@@ -98,44 +98,46 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 switch (state)
                 {
                     case CodeItemState.Draft:
-                    {
-                        Node.ChangeNodeAndParentColor(Color.Red);
-                    }
-                        break;
-                    case CodeItemState.Saved:
-                    {
-                        Node.ChangeNodeAndParentColor(Color.Blue);
-
-                        Parent.HasPendingChanges = true;
-                    }
-                        break;
-                    case CodeItemState.None:
-                    {
-                        Node.ChangeNodeAndParentColor(Color.Empty);
-
-                        if (Parent.Items.All(i => i.State != CodeItemState.Saved))
                         {
-                            Parent.HasPendingChanges = false;
+                            Node.ChangeNodeAndParentColor(Color.Red);
                         }
-                    }
+                        break;
+
+                    case CodeItemState.Saved:
+                        {
+                            Node.ChangeNodeAndParentColor(Color.Blue);
+
+                            Parent.HasPendingChanges = true;
+                        }
+                        break;
+
+                    case CodeItemState.None:
+                        {
+                            Node.ChangeNodeAndParentColor(Color.Empty);
+
+                            if (Parent.Items.All(i => i.State != CodeItemState.Saved))
+                            {
+                                Parent.HasPendingChanges = false;
+                            }
+                        }
                         break;
                 }
 
                 StateChanged?.Invoke(this, new System.EventArgs());
             }
-            
         }
+
         public CodeItemType Type { get; set; }
         public TreeNode Node { get; set; }
         public EditablePortalItem Parent { get; }
 
-        #endregion
+        #endregion Properties
 
         #region Events
 
         public event EventHandler StateChanged;
 
-        #endregion
+        #endregion Events
 
         #region Methods
 
@@ -145,6 +147,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             State = CodeItemState.None;
         }
 
-        #endregion
+        #endregion Methods
     }
 }
