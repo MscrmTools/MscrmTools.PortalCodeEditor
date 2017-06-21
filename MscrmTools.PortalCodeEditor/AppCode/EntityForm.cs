@@ -12,7 +12,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         private readonly Entity innerRecord;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -26,13 +26,13 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Items.Add(JavaScript);
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Properties
 
         public CodeItem JavaScript { get; }
 
-        #endregion
+        #endregion Properties
 
         #region Methods
 
@@ -41,7 +41,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             var records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
             {
                 ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
-                Orders = {new OrderExpression("adx_name", OrderType.Ascending)}
+                Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
             }).Entities;
 
             return records.Select(record => new EntityForm(record)).ToList();
@@ -68,7 +68,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public override string RefreshContent(CodeItem item, IOrganizationService service)
         {
-            var record = service.Retrieve("adx_entityform", innerRecord.Id,
+            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
                 new ColumnSet("adx_registerstartupscript"));
 
             innerRecord.RowVersion = record.RowVersion;
@@ -76,6 +76,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             return record.GetAttributeValue<string>("adx_registerstartupscript");
         }
 
-        #endregion
+        #endregion Methods
     }
 }

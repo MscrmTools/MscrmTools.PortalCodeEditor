@@ -12,7 +12,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         private readonly Entity innerRecord;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -33,14 +33,14 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Items.Add(Style);
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Properties
 
         public CodeItem JavaScript { get; }
         public CodeItem Style { get; }
 
-        #endregion
+        #endregion Properties
 
         #region Methods
 
@@ -78,7 +78,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public override string RefreshContent(CodeItem item, IOrganizationService service)
         {
-            var record = service.Retrieve("adx_webpage", innerRecord.Id,
+            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
                 new ColumnSet(item.Type == CodeItemType.JavaScript ? "adx_customjavascript" : "adx_customcss"));
 
             innerRecord.RowVersion = record.RowVersion;
@@ -88,6 +88,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 : record.GetAttributeValue<string>("adx_customcss");
         }
 
-        #endregion
+        #endregion Methods
     }
 }
