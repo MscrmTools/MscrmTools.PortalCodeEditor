@@ -72,8 +72,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public override void Update(IOrganizationService service, bool forceUpdate = false)
         {
-            MessageBox.Show("Update Web Template");
-
             innerRecord["adx_source"] = Code.Content;
 
             var updateRequest = new UpdateRequest
