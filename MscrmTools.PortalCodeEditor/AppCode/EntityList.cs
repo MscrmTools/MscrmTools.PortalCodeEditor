@@ -20,6 +20,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public EntityList(Entity record)
         {
+            Id = record.Id;
             JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_registerstartupscript"), CodeItemType.JavaScript, false, this);
             Name = record.GetAttributeValue<string>("adx_name");
             WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??

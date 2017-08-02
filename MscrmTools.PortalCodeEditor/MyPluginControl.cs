@@ -71,7 +71,7 @@ namespace MscrmTools.PortalCodeEditor
 
             if (e.Item != null)
             {
-                var key = $"{e.Item.Parent.Name}{e.Item.Type}";
+                var key = $"{e.Item.Parent.Id}{e.Item.Type}";
 
                 TabPage tab;
 

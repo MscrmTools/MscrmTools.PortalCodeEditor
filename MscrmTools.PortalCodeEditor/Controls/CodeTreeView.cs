@@ -110,17 +110,43 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     page.JavaScript.StateChanged += JavaScript_StateChanged;
                     page.Style.StateChanged += JavaScript_StateChanged;
 
-                    var node = new TreeNode(page.Name) { Tag = item };
+                    TreeNode node;
+                    if (page.IsRoot || page.ParentPageId == Guid.Empty)
+                    {
+                        node = new TreeNode(page.Name) { Tag = item };
+                        typeNode.Nodes.Add(node);
 
-                    typeNode.Nodes.Add(node);
+                        if (isLegacyPortal)
+                        {
+                            var scriptNode = new TreeNode("JavaScript") { Tag = page.JavaScript };
+                            page.JavaScript.Node = scriptNode;
+                            var styleNode = new TreeNode("Style") { Tag = page.Style };
+                            page.Style.Node = styleNode;
 
-                    var scriptNode = new TreeNode("JavaScript") { Tag = page.JavaScript };
-                    page.JavaScript.Node = scriptNode;
-                    var styleNode = new TreeNode("Style") { Tag = page.Style };
-                    page.Style.Node = styleNode;
+                            node.Nodes.Add(scriptNode);
+                            node.Nodes.Add(styleNode);
+                        }
+                    }
+                    else
+                    {
+                        var parentPageNode = typeNode.Nodes.Cast<TreeNode>().FirstOrDefault(t => ((WebPage)t.Tag).Id == page.ParentPageId);
+                        if (parentPageNode == null)
+                        {
+                            continue;
+                        }
 
-                    node.Nodes.Add(scriptNode);
-                    node.Nodes.Add(styleNode);
+                        node = new TreeNode(page.Language) { Tag = item };
+
+                        var scriptNode = new TreeNode("JavaScript") { Tag = page.JavaScript };
+                        page.JavaScript.Node = scriptNode;
+                        var styleNode = new TreeNode("Style") { Tag = page.Style };
+                        page.Style.Node = styleNode;
+
+                        node.Nodes.Add(scriptNode);
+                        node.Nodes.Add(styleNode);
+
+                        parentPageNode.Nodes.Add(node);
+                    }
                 }
                 else if (item is EntityForm)
                 {
@@ -129,7 +155,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Entity Forms") { Name = "EntityForm" };
-                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
                     EntityForm form = (EntityForm)item;
@@ -147,7 +173,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Entity Lists") { Name = "EntityList" };
-                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
                     EntityList list = (EntityList)item;
@@ -165,7 +191,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Web Templates") { Name = "WebTemplate" };
-                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
                     WebTemplate template = (WebTemplate)item;
@@ -183,7 +209,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Web Files") { Name = "WebFile" };
-                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
                     WebFile file = (WebFile)item;
@@ -201,7 +227,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Web Forms") { Name = "WebForm" };
-                        rootNodes[Guid.Empty].Nodes.Add(typeNode);
+                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
                     WebFormStep wfStep = (WebFormStep)item;

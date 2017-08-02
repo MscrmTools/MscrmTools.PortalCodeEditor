@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
 using Microsoft.Xrm.Sdk;
@@ -17,14 +18,19 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Constructor
 
-        public WebPage(Entity record)
+        public WebPage(Entity record, bool isLegacyPortal)
         {
+            Id = record.Id;
+
             JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_customjavascript"), CodeItemType.JavaScript,
                 false, this);
             Style = new CodeItem(record.GetAttributeValue<string>("adx_customcss"), CodeItemType.Style, false, this);
 
-            Name =
-                $"{record.GetAttributeValue<string>("adx_name")} {(record.Contains("adx_webpagelanguageid") ? "(" + record.GetAttributeValue<EntityReference>("adx_webpagelanguageid").Name + ")" : "")}";
+            IsRoot = record.GetAttributeValue<bool>("adx_isroot");
+
+            ParentPageId = record.GetAttributeValue<EntityReference>("adx_rootwebpageid")?.Id ?? Guid.Empty;
+            Language = record.GetAttributeValue<EntityReference>("adx_webpagelanguageid")?.Name ?? "no language";
+            Name = $"{record.GetAttributeValue<string>("adx_name")}{(IsRoot || isLegacyPortal ? "" : " (" + Language + ")")}";
 
             WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid");
 
@@ -40,6 +46,10 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public CodeItem JavaScript { get; }
         public CodeItem Style { get; }
+        public bool IsRoot { get; }
+
+        public Guid ParentPageId { get; }
+        public string Language { get; }
 
         #endregion Properties
 
@@ -51,11 +61,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             {
                 var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid"),
-                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot"),
+                    Orders = { new OrderExpression("adx_isroot", OrderType.Descending), new OrderExpression("adx_name", OrderType.Ascending) }
                 }).Entities;
 
-                return records.Select(record => new WebPage(record)).ToList();
+                return records.Select(record => new WebPage(record, false)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
@@ -67,7 +77,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                         Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
                     }).Entities;
 
-                    return records.Select(record => new WebPage(record)).ToList();
+                    return records.Select(record => new WebPage(record, true)).ToList();
                 }
                 throw;
             }

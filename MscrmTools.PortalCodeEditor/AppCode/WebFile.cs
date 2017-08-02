@@ -15,7 +15,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         private readonly Entity innerRecord;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -23,22 +23,23 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         {
             var ext = record.GetAttributeValue<string>("filename").ToLower().Split('.').Last();
 
+            Id = record.Id;
             Code = new CodeItem(record.GetAttributeValue<string>("documentbody"), ext == "js" ? CodeItemType.JavaScript : CodeItemType.Style, true, this);
             Name = record.GetAttributeValue<AliasedValue>("webfile.adx_name").Value.ToString();
-            WebsiteReference = (EntityReference) record.GetAttributeValue<AliasedValue>("webfile.adx_websiteid").Value;
+            WebsiteReference = (EntityReference)record.GetAttributeValue<AliasedValue>("webfile.adx_websiteid").Value;
 
             innerRecord = record;
 
             Items.Add(Code);
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Properties
 
         public CodeItem Code { get; }
 
-        #endregion
+        #endregion Properties
 
         #region Methods
 
@@ -65,7 +66,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                     Conditions =
                     {
                         new ConditionExpression("documentbody", ConditionOperator.NotNull),
-
                     },
                     Filters =
                     {
@@ -83,6 +83,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             return records.Select(record => new WebFile(record)).ToList();
         }
+
         public override void Update(IOrganizationService service, bool forceUpdate = false)
         {
             innerRecord["documentbody"] = Code.EncodedContent;
@@ -121,6 +122,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             return data;
         }
 
-        #endregion
+        #endregion Methods
     }
 }

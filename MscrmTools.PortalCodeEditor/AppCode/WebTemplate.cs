@@ -21,6 +21,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public WebTemplate(Entity record)
         {
+            Id = record.Id;
             Code = new CodeItem(record.GetAttributeValue<string>("adx_source"), CodeItemType.LiquidTemplate, false, this);
             Name = record.GetAttributeValue<string>("adx_name");
             WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??

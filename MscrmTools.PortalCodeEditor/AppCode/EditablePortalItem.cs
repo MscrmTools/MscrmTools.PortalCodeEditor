@@ -10,7 +10,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         private bool hasPendingChanges;
 
-        #endregion
+        #endregion Variables
 
         #region Constructor
 
@@ -19,19 +19,21 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Items = new List<CodeItem>();
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Events
 
         public event EventHandler UpdateRequired;
 
-        #endregion
+        #endregion Events
 
         #region Properties
 
         public EntityReference WebsiteReference { get; protected set; }
         public string Name { get; protected set; }
         public List<CodeItem> Items { get; }
+        public Guid Id { get; protected set; }
+
         public bool HasPendingChanges
         {
             get { return hasPendingChanges; }
@@ -42,7 +44,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             }
         }
 
-        #endregion
+        #endregion Properties
 
         #region Methods
 
@@ -50,6 +52,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public abstract string RefreshContent(CodeItem item, IOrganizationService service);
 
-        #endregion
+        #endregion Methods
     }
 }

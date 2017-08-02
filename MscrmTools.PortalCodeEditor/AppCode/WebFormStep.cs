@@ -20,6 +20,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public WebFormStep(Entity record)
         {
+            Id = record.Id;
             JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_registerstartupscript"), CodeItemType.JavaScript, false, this);
             Name = record.GetAttributeValue<string>("adx_name");
             WebFormReference = record.GetAttributeValue<EntityReference>("adx_webform");
