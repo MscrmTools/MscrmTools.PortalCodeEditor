@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
+using System.Web.ApplicationServices;
 using System.Windows.Forms;
 using Microsoft.Xrm.Sdk;
 using MscrmTools.PortalCodeEditor.AppCode;
@@ -15,7 +16,7 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace MscrmTools.PortalCodeEditor
 {
-    public partial class MyPluginControl : PluginControlBase, IGitHubPlugin, IHelpPlugin
+    public partial class MyPluginControl : PluginControlBase, IGitHubPlugin, IHelpPlugin, IShortcutReceiver
     {
         #region Variables
 
@@ -293,12 +294,6 @@ namespace MscrmTools.PortalCodeEditor
 
         private void findToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (((TabControl)(Parent).Parent).SelectedTab != Parent)
-            {
-                ((ToolStripDropDownItem)((ToolStrip)(((TabControl)(Parent).Parent).SelectedTab.Controls.Find("toolStripScriptContent", true)[0])).Items[2]).DropDownItems[0].PerformClick();
-                return;
-            }
-
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
@@ -309,12 +304,6 @@ namespace MscrmTools.PortalCodeEditor
 
         private void replaceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (((TabControl)(Parent).Parent).SelectedTab != Parent)
-            {
-                ((ToolStripDropDownItem)((ToolStrip)(((TabControl)(Parent).Parent).SelectedTab.Controls.Find("toolStripScriptContent", true)[0])).Items[2]).DropDownItems[1].PerformClick();
-                return;
-            }
-
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
@@ -325,12 +314,6 @@ namespace MscrmTools.PortalCodeEditor
 
         private void goToLineToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (((TabControl)(Parent).Parent).SelectedTab != Parent)
-            {
-                ((ToolStripDropDownItem)((ToolStrip)(((TabControl)(Parent).Parent).SelectedTab.Controls.Find("toolStripScriptContent", true)[0])).Items[2]).DropDownItems[1].PerformClick();
-                return;
-            }
-
             if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
                 return;
 
@@ -550,5 +533,73 @@ namespace MscrmTools.PortalCodeEditor
         }
 
         #endregion Other methods
+
+        #region IShortcutReceiver
+
+        private bool isCtrlK;
+
+        public void ReceiveKeyDownShortcut(KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.S)
+            {
+                fileMenuSave_Click(tsddbEdit, new EventArgs());
+            }
+            else if (e.Control && e.KeyCode == Keys.U)
+            {
+                if (isCtrlK)
+                {
+                    tsbnUncomment_Click(tsbnUncomment, new EventArgs());
+                }
+                else
+                {
+                    fileMenuUpdate_Click(tsddbEdit, new EventArgs());
+                }
+
+                isCtrlK = false;
+            }
+            else if (e.Control && e.KeyCode == Keys.G)
+            {
+                goToLineToolStripMenuItem_Click(toolStripDropDownButton1, new EventArgs());
+            }
+            else if (e.Control && e.KeyCode == Keys.F)
+            {
+                findToolStripMenuItem_Click(toolStripDropDownButton1, new EventArgs());
+            }
+            else if (e.Control && e.KeyCode == Keys.H)
+            {
+                replaceToolStripMenuItem_Click(toolStripDropDownButton1, new EventArgs());
+            }
+            else if (e.Control && e.KeyCode == Keys.K)
+            {
+                isCtrlK = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.C)
+            {
+                if (isCtrlK)
+                {
+                    tsbComment_Click(tsbComment, new EventArgs());
+                }
+
+                isCtrlK = false;
+            }
+            else
+            {
+                isCtrlK = false;
+            }
+        }
+
+        public void ReceiveKeyPressShortcut(KeyPressEventArgs e)
+        {
+        }
+
+        public void ReceiveKeyUpShortcut(KeyEventArgs e)
+        {
+        }
+
+        public void ReceivePreviewKeyDownShortcut(PreviewKeyDownEventArgs e)
+        {
+        }
+
+        #endregion IShortcutReceiver
     }
 }

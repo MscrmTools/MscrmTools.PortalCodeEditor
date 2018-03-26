@@ -152,6 +152,8 @@ namespace MscrmTools.PortalCodeEditor.Controls
             findReplace = new FindReplace();
             findReplace.Scintilla = scintilla;
             findReplace.KeyPressed += MyFindReplace_KeyPressed;
+
+            ManageCmdKeys();
         }
 
         #endregion Constructor
@@ -223,6 +225,19 @@ namespace MscrmTools.PortalCodeEditor.Controls
         #endregion Events
 
         #region Methods
+
+        private void ManageCmdKeys()
+        {
+            scintilla.ClearCmdKey(Keys.Control | Keys.S);
+            scintilla.ClearCmdKey(Keys.Control | Keys.U);
+            scintilla.ClearCmdKey(Keys.Control | Keys.F);
+            scintilla.ClearCmdKey(Keys.Control | Keys.G);
+            scintilla.ClearCmdKey(Keys.Control | Keys.H);
+            scintilla.ClearCmdKey(Keys.Control | Keys.K);
+            scintilla.ClearCmdKey(Keys.Control | Keys.C);
+            scintilla.ClearCmdKey(Keys.Control | Keys.U);
+            scintilla.AssignCmdKey(Keys.Shift | Keys.Delete, Command.LineDelete);
+        }
 
         public void Save()
         {

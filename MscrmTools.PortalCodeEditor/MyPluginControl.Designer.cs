@@ -88,8 +88,8 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbSettings});
             this.tsMainMenu.Location = new System.Drawing.Point(0, 0);
             this.tsMainMenu.Name = "tsMainMenu";
-            this.tsMainMenu.Padding = new System.Windows.Forms.Padding(0, 0, 3, 0);
-            this.tsMainMenu.Size = new System.Drawing.Size(1501, 39);
+            this.tsMainMenu.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
+            this.tsMainMenu.Size = new System.Drawing.Size(750, 25);
             this.tsMainMenu.TabIndex = 1;
             this.tsMainMenu.Text = "tsMain";
             // 
@@ -99,21 +99,21 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbClose.Image = ((System.Drawing.Image)(resources.GetObject("tsbClose.Image")));
             this.tsbClose.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbClose.Name = "tsbClose";
-            this.tsbClose.Size = new System.Drawing.Size(36, 36);
+            this.tsbClose.Size = new System.Drawing.Size(23, 22);
             this.tsbClose.Text = "Close";
             this.tsbClose.Click += new System.EventHandler(this.tsbClose_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 39);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // tsbLoadItems
             // 
             this.tsbLoadItems.Image = ((System.Drawing.Image)(resources.GetObject("tsbLoadItems.Image")));
             this.tsbLoadItems.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbLoadItems.Name = "tsbLoadItems";
-            this.tsbLoadItems.Size = new System.Drawing.Size(167, 36);
+            this.tsbLoadItems.Size = new System.Drawing.Size(85, 22);
             this.tsbLoadItems.Text = "Load items";
             this.tsbLoadItems.Click += new System.EventHandler(this.tsbLoadItems_Click);
             // 
@@ -124,7 +124,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbCredits.Image = ((System.Drawing.Image)(resources.GetObject("tsbCredits.Image")));
             this.tsbCredits.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbCredits.Name = "tsbCredits";
-            this.tsbCredits.Size = new System.Drawing.Size(93, 36);
+            this.tsbCredits.Size = new System.Drawing.Size(48, 22);
             this.tsbCredits.Text = "Credits";
             this.tsbCredits.Click += new System.EventHandler(this.tsbCredits_Click);
             // 
@@ -133,29 +133,29 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbUpdateCheckedItems.Image = ((System.Drawing.Image)(resources.GetObject("tsbUpdateCheckedItems.Image")));
             this.tsbUpdateCheckedItems.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbUpdateCheckedItems.Name = "tsbUpdateCheckedItems";
-            this.tsbUpdateCheckedItems.Size = new System.Drawing.Size(288, 36);
+            this.tsbUpdateCheckedItems.Size = new System.Drawing.Size(144, 22);
             this.tsbUpdateCheckedItems.Text = "Update checked items";
             this.tsbUpdateCheckedItems.Click += new System.EventHandler(this.tsbUpdateCheckedItems_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 39);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
             // 
             // tsbSettings
             // 
             this.tsbSettings.Image = ((System.Drawing.Image)(resources.GetObject("tsbSettings.Image")));
             this.tsbSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSettings.Name = "tsbSettings";
-            this.tsbSettings.Size = new System.Drawing.Size(137, 36);
+            this.tsbSettings.Size = new System.Drawing.Size(69, 22);
             this.tsbSettings.Text = "Settings";
             this.tsbSettings.Click += new System.EventHandler(this.tsbSettings_Click);
             // 
             // scMain
             // 
             this.scMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.scMain.Location = new System.Drawing.Point(0, 39);
-            this.scMain.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.scMain.Location = new System.Drawing.Point(0, 25);
+            this.scMain.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.scMain.Name = "scMain";
             // 
             // scMain.Panel1
@@ -167,18 +167,18 @@ namespace MscrmTools.PortalCodeEditor
             this.scMain.Panel2.Controls.Add(this.tcCodeContents);
             this.scMain.Panel2.Controls.Add(this.tsCodeContent);
             this.scMain.Panel2.Controls.Add(this.pnlContentFooter);
-            this.scMain.Size = new System.Drawing.Size(1501, 1057);
-            this.scMain.SplitterDistance = 503;
-            this.scMain.SplitterWidth = 8;
+            this.scMain.Size = new System.Drawing.Size(750, 545);
+            this.scMain.SplitterDistance = 251;
             this.scMain.TabIndex = 2;
             // 
             // ctv
             // 
             this.ctv.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ctv.IsLegacyPortal = false;
             this.ctv.Location = new System.Drawing.Point(0, 0);
-            this.ctv.Margin = new System.Windows.Forms.Padding(8, 10, 8, 10);
+            this.ctv.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ctv.Name = "ctv";
-            this.ctv.Size = new System.Drawing.Size(503, 1057);
+            this.ctv.Size = new System.Drawing.Size(251, 545);
             this.ctv.TabIndex = 0;
             this.ctv.PortalItemSelected += new System.EventHandler<MscrmTools.PortalCodeEditor.AppCode.EventArgs.PortalItemSelectedEventArgs>(this.ctv_PortalItemSelected);
             this.ctv.ActionRequested += new System.EventHandler(this.ctv_ActionRequested);
@@ -187,11 +187,11 @@ namespace MscrmTools.PortalCodeEditor
             // 
             this.tcCodeContents.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcCodeContents.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
-            this.tcCodeContents.Location = new System.Drawing.Point(0, 48);
-            this.tcCodeContents.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.tcCodeContents.Location = new System.Drawing.Point(0, 25);
+            this.tcCodeContents.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.tcCodeContents.Name = "tcCodeContents";
             this.tcCodeContents.SelectedIndex = 0;
-            this.tcCodeContents.Size = new System.Drawing.Size(990, 967);
+            this.tcCodeContents.Size = new System.Drawing.Size(495, 498);
             this.tcCodeContents.TabIndex = 5;
             this.tcCodeContents.SelectedIndexChanged += new System.EventHandler(this.tcCodeContents_SelectedIndexChanged);
             this.tcCodeContents.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tcCodeContents_MouseClick);
@@ -213,8 +213,8 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbnUncomment});
             this.tsCodeContent.Location = new System.Drawing.Point(0, 0);
             this.tsCodeContent.Name = "tsCodeContent";
-            this.tsCodeContent.Padding = new System.Windows.Forms.Padding(0, 0, 3, 0);
-            this.tsCodeContent.Size = new System.Drawing.Size(990, 48);
+            this.tsCodeContent.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
+            this.tsCodeContent.Size = new System.Drawing.Size(495, 25);
             this.tsCodeContent.TabIndex = 4;
             this.tsCodeContent.Text = "toolStripScriptContent";
             // 
@@ -227,7 +227,7 @@ namespace MscrmTools.PortalCodeEditor
             this.toolStripDropDownButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton1.Image")));
             this.toolStripDropDownButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton1.Name = "toolStripDropDownButton1";
-            this.toolStripDropDownButton1.Size = new System.Drawing.Size(74, 45);
+            this.toolStripDropDownButton1.Size = new System.Drawing.Size(38, 22);
             this.toolStripDropDownButton1.Text = "File";
             // 
             // tsmiSave
@@ -235,9 +235,8 @@ namespace MscrmTools.PortalCodeEditor
             this.tsmiSave.Enabled = false;
             this.tsmiSave.Image = ((System.Drawing.Image)(resources.GetObject("tsmiSave.Image")));
             this.tsmiSave.Name = "tsmiSave";
-            this.tsmiSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.tsmiSave.Size = new System.Drawing.Size(275, 38);
-            this.tsmiSave.Text = "Save";
+            this.tsmiSave.Size = new System.Drawing.Size(158, 22);
+            this.tsmiSave.Text = "Save (Ctrl+S)";
             this.tsmiSave.ToolTipText = "Save this content in memory. This does not update the portal record of the connec" +
     "ted organization";
             this.tsmiSave.Click += new System.EventHandler(this.fileMenuSave_Click);
@@ -247,16 +246,15 @@ namespace MscrmTools.PortalCodeEditor
             this.tsmiUpdate.Enabled = false;
             this.tsmiUpdate.Image = ((System.Drawing.Image)(resources.GetObject("tsmiUpdate.Image")));
             this.tsmiUpdate.Name = "tsmiUpdate";
-            this.tsmiUpdate.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.U)));
-            this.tsmiUpdate.Size = new System.Drawing.Size(275, 38);
-            this.tsmiUpdate.Text = "Update";
+            this.tsmiUpdate.Size = new System.Drawing.Size(158, 22);
+            this.tsmiUpdate.Text = "Update (Ctrl+U)";
             this.tsmiUpdate.ToolTipText = "Update the portal record of the connected organization";
             this.tsmiUpdate.Click += new System.EventHandler(this.fileMenuUpdate_Click);
             // 
             // tsSeparatorEdit
             // 
             this.tsSeparatorEdit.Name = "tsSeparatorEdit";
-            this.tsSeparatorEdit.Size = new System.Drawing.Size(6, 48);
+            this.tsSeparatorEdit.Size = new System.Drawing.Size(6, 25);
             // 
             // tsddbEdit
             // 
@@ -268,39 +266,36 @@ namespace MscrmTools.PortalCodeEditor
             this.tsddbEdit.Image = ((System.Drawing.Image)(resources.GetObject("tsddbEdit.Image")));
             this.tsddbEdit.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsddbEdit.Name = "tsddbEdit";
-            this.tsddbEdit.Size = new System.Drawing.Size(77, 45);
+            this.tsddbEdit.Size = new System.Drawing.Size(40, 22);
             this.tsddbEdit.Text = "Edit";
             // 
             // tsmiFind
             // 
             this.tsmiFind.Image = ((System.Drawing.Image)(resources.GetObject("tsmiFind.Image")));
             this.tsmiFind.Name = "tsmiFind";
-            this.tsmiFind.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.tsmiFind.Size = new System.Drawing.Size(311, 38);
-            this.tsmiFind.Text = "Find";
+            this.tsmiFind.Size = new System.Drawing.Size(176, 22);
+            this.tsmiFind.Text = "Find (Ctrl+F)";
             this.tsmiFind.Click += new System.EventHandler(this.findToolStripMenuItem_Click);
             // 
             // tsmiReplace
             // 
             this.tsmiReplace.Image = ((System.Drawing.Image)(resources.GetObject("tsmiReplace.Image")));
             this.tsmiReplace.Name = "tsmiReplace";
-            this.tsmiReplace.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H)));
-            this.tsmiReplace.Size = new System.Drawing.Size(311, 38);
-            this.tsmiReplace.Text = "Replace";
+            this.tsmiReplace.Size = new System.Drawing.Size(176, 22);
+            this.tsmiReplace.Text = "Replace (Ctrl+H)";
             this.tsmiReplace.Click += new System.EventHandler(this.replaceToolStripMenuItem_Click);
             // 
             // tsmiGoToLine
             // 
             this.tsmiGoToLine.Name = "tsmiGoToLine";
-            this.tsmiGoToLine.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G)));
-            this.tsmiGoToLine.Size = new System.Drawing.Size(311, 38);
-            this.tsmiGoToLine.Text = "Go To Line";
+            this.tsmiGoToLine.Size = new System.Drawing.Size(176, 22);
+            this.tsmiGoToLine.Text = "Go To Line (Ctrl+G)";
             this.tsmiGoToLine.Click += new System.EventHandler(this.goToLineToolStripMenuItem_Click);
             // 
             // toolStripSeparatorMinifyJS
             // 
             this.toolStripSeparatorMinifyJS.Name = "toolStripSeparatorMinifyJS";
-            this.toolStripSeparatorMinifyJS.Size = new System.Drawing.Size(6, 48);
+            this.toolStripSeparatorMinifyJS.Size = new System.Drawing.Size(6, 25);
             this.toolStripSeparatorMinifyJS.Visible = false;
             // 
             // tsbMinifyJS
@@ -308,7 +303,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbMinifyJS.Image = ((System.Drawing.Image)(resources.GetObject("tsbMinifyJS.Image")));
             this.tsbMinifyJS.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbMinifyJS.Name = "tsbMinifyJS";
-            this.tsbMinifyJS.Size = new System.Drawing.Size(156, 45);
+            this.tsbMinifyJS.Size = new System.Drawing.Size(80, 22);
             this.tsbMinifyJS.Text = "Compress";
             this.tsbMinifyJS.ToolTipText = "This feature compress/minify a script web resource. It does not obfuscate the cod" +
     "e, just remove useless formatting.\r\nBe careful when using this feature! There is" +
@@ -321,7 +316,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbBeautify.Image = ((System.Drawing.Image)(resources.GetObject("tsbBeautify.Image")));
             this.tsbBeautify.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbBeautify.Name = "tsbBeautify";
-            this.tsbBeautify.Size = new System.Drawing.Size(138, 45);
+            this.tsbBeautify.Size = new System.Drawing.Size(70, 22);
             this.tsbBeautify.Text = "Beautify";
             this.tsbBeautify.ToolTipText = "This feature make uglified JavaScript readable \r\n\r\nThanks to ghost6991 for his wo" +
     "rk on the beautifier in C# : https://github.com/ghost6991/Jsbeautifier";
@@ -333,19 +328,19 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbGetLatestVersion.Image = ((System.Drawing.Image)(resources.GetObject("tsbGetLatestVersion.Image")));
             this.tsbGetLatestVersion.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbGetLatestVersion.Name = "tsbGetLatestVersion";
-            this.tsbGetLatestVersion.Size = new System.Drawing.Size(157, 45);
+            this.tsbGetLatestVersion.Size = new System.Drawing.Size(79, 22);
             this.tsbGetLatestVersion.Text = "Get Latest";
             this.tsbGetLatestVersion.Click += new System.EventHandler(this.tsbGetLatestVersion_Click);
             // 
             // toolStripSeparator10
             // 
             this.toolStripSeparator10.Name = "toolStripSeparator10";
-            this.toolStripSeparator10.Size = new System.Drawing.Size(6, 48);
+            this.toolStripSeparator10.Size = new System.Drawing.Size(6, 25);
             // 
             // tslResourceName
             // 
             this.tslResourceName.Name = "tslResourceName";
-            this.tslResourceName.Size = new System.Drawing.Size(0, 45);
+            this.tslResourceName.Size = new System.Drawing.Size(0, 22);
             this.tslResourceName.Visible = false;
             // 
             // tsbComment
@@ -354,7 +349,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbComment.Image = ((System.Drawing.Image)(resources.GetObject("tsbComment.Image")));
             this.tsbComment.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbComment.Name = "tsbComment";
-            this.tsbComment.Size = new System.Drawing.Size(36, 45);
+            this.tsbComment.Size = new System.Drawing.Size(23, 22);
             this.tsbComment.Text = "Comment";
             this.tsbComment.Click += new System.EventHandler(this.tsbComment_Click);
             // 
@@ -364,7 +359,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbnUncomment.Image = ((System.Drawing.Image)(resources.GetObject("tsbnUncomment.Image")));
             this.tsbnUncomment.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbnUncomment.Name = "tsbnUncomment";
-            this.tsbnUncomment.Size = new System.Drawing.Size(36, 45);
+            this.tsbnUncomment.Size = new System.Drawing.Size(23, 22);
             this.tsbnUncomment.Text = "Uncomment";
             this.tsbnUncomment.Click += new System.EventHandler(this.tsbnUncomment_Click);
             // 
@@ -372,19 +367,19 @@ namespace MscrmTools.PortalCodeEditor
             // 
             this.pnlContentFooter.Controls.Add(this.lblItemSelected);
             this.pnlContentFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlContentFooter.Location = new System.Drawing.Point(0, 1015);
-            this.pnlContentFooter.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.pnlContentFooter.Location = new System.Drawing.Point(0, 523);
+            this.pnlContentFooter.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.pnlContentFooter.Name = "pnlContentFooter";
-            this.pnlContentFooter.Size = new System.Drawing.Size(990, 42);
+            this.pnlContentFooter.Size = new System.Drawing.Size(495, 22);
             this.pnlContentFooter.TabIndex = 1;
             // 
             // lblItemSelected
             // 
             this.lblItemSelected.AutoSize = true;
-            this.lblItemSelected.Location = new System.Drawing.Point(8, 8);
-            this.lblItemSelected.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.lblItemSelected.Location = new System.Drawing.Point(4, 4);
+            this.lblItemSelected.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblItemSelected.Name = "lblItemSelected";
-            this.lblItemSelected.Size = new System.Drawing.Size(0, 25);
+            this.lblItemSelected.Size = new System.Drawing.Size(0, 13);
             this.lblItemSelected.TabIndex = 0;
             // 
             // cmsTab
@@ -395,38 +390,38 @@ namespace MscrmTools.PortalCodeEditor
             this.closeAllTabsToolStripMenuItem,
             this.colseAllButThisTabToolStripMenuItem});
             this.cmsTab.Name = "cmsTab";
-            this.cmsTab.Size = new System.Drawing.Size(309, 112);
+            this.cmsTab.Size = new System.Drawing.Size(182, 70);
             // 
             // closeThisTabToolStripMenuItem
             // 
             this.closeThisTabToolStripMenuItem.Name = "closeThisTabToolStripMenuItem";
-            this.closeThisTabToolStripMenuItem.Size = new System.Drawing.Size(308, 36);
+            this.closeThisTabToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.closeThisTabToolStripMenuItem.Text = "Close this tab";
             this.closeThisTabToolStripMenuItem.Click += new System.EventHandler(this.closeThisTabToolStripMenuItem_Click);
             // 
             // closeAllTabsToolStripMenuItem
             // 
             this.closeAllTabsToolStripMenuItem.Name = "closeAllTabsToolStripMenuItem";
-            this.closeAllTabsToolStripMenuItem.Size = new System.Drawing.Size(308, 36);
+            this.closeAllTabsToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.closeAllTabsToolStripMenuItem.Text = "Close all tabs";
             this.closeAllTabsToolStripMenuItem.Click += new System.EventHandler(this.closeAllTabsToolStripMenuItem_Click);
             // 
             // colseAllButThisTabToolStripMenuItem
             // 
             this.colseAllButThisTabToolStripMenuItem.Name = "colseAllButThisTabToolStripMenuItem";
-            this.colseAllButThisTabToolStripMenuItem.Size = new System.Drawing.Size(308, 36);
+            this.colseAllButThisTabToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.colseAllButThisTabToolStripMenuItem.Text = "Colse all but this tab";
             this.colseAllButThisTabToolStripMenuItem.Click += new System.EventHandler(this.colseAllButThisTabToolStripMenuItem_Click);
             // 
             // MyPluginControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.scMain);
             this.Controls.Add(this.tsMainMenu);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "MyPluginControl";
-            this.Size = new System.Drawing.Size(1501, 1096);
+            this.Size = new System.Drawing.Size(750, 570);
             this.OnCloseTool += new System.EventHandler(this.MyPluginControl_OnCloseTool);
             this.Load += new System.EventHandler(this.MyPluginControl_Load);
             this.tsMainMenu.ResumeLayout(false);
