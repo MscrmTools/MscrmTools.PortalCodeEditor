@@ -223,19 +223,19 @@
             this.updateToolStripMenuItem,
             this.refreshFromPortalToolStripMenuItem});
             this.cmsTreeview.Name = "cmsTreeview";
-            this.cmsTreeview.Size = new System.Drawing.Size(252, 64);
+            this.cmsTreeview.Size = new System.Drawing.Size(239, 64);
             // 
             // updateToolStripMenuItem
             // 
             this.updateToolStripMenuItem.Name = "updateToolStripMenuItem";
-            this.updateToolStripMenuItem.Size = new System.Drawing.Size(251, 30);
+            this.updateToolStripMenuItem.Size = new System.Drawing.Size(238, 30);
             this.updateToolStripMenuItem.Text = "Update";
             this.updateToolStripMenuItem.Click += new System.EventHandler(this.updateToolStripMenuItem_Click);
             // 
             // refreshFromPortalToolStripMenuItem
             // 
             this.refreshFromPortalToolStripMenuItem.Name = "refreshFromPortalToolStripMenuItem";
-            this.refreshFromPortalToolStripMenuItem.Size = new System.Drawing.Size(251, 30);
+            this.refreshFromPortalToolStripMenuItem.Size = new System.Drawing.Size(238, 30);
             this.refreshFromPortalToolStripMenuItem.Text = "Refresh from portal";
             this.refreshFromPortalToolStripMenuItem.Click += new System.EventHandler(this.refreshFromPortalToolStripMenuItem_Click);
             // 

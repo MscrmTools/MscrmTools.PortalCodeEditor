@@ -74,6 +74,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 if (websiteReference == null) { continue; }
 
                 TreeNode parentNode;
+                TreeNode contentSnippetsNode;
                 if (rootNodes.ContainsKey(websiteReference.Id))
                 {
                     parentNode = rootNodes[websiteReference.Id];
@@ -83,9 +84,14 @@ namespace MscrmTools.PortalCodeEditor.Controls
                     var name = websiteReference.Id == Guid.Empty ? "(Not website related)" : websiteReference.Name;
                     var rootNode = new TreeNode(name);
 
+                    var snippetsNode = new TreeNode("Content Snippets") { Name = "ContentSnippet" };
+                    var htmlSnippetsNode = new TreeNode("Html") { Name = "Html" };
+                    var textSnippetsNode = new TreeNode("Text") { Name = "Text" };
+                    snippetsNode.Nodes.Add(htmlSnippetsNode);
+                    snippetsNode.Nodes.Add(textSnippetsNode);
                     rootNodes.Add(websiteReference.Id, rootNode);
-
                     parentNode = rootNode;
+                    contentSnippetsNode = snippetsNode;
 
                     parentNode.Nodes.Add(new TreeNode("Web Pages") { Name = "WebPage" });
 
@@ -95,6 +101,8 @@ namespace MscrmTools.PortalCodeEditor.Controls
                         parentNode.Nodes.Add(new TreeNode("Entity Lists") { Name = "EntityList" });
                         parentNode.Nodes.Add(new TreeNode("Web Forms") { Name = "WebForm" });
                         parentNode.Nodes.Add(new TreeNode("Web Templates") { Name = "WebTemplate" });
+
+                        parentNode.Nodes.Add(snippetsNode);
                     }
 
                     parentNode.Nodes.Add(new TreeNode("Web Files") { Name = "WebFile" });
@@ -261,6 +269,34 @@ namespace MscrmTools.PortalCodeEditor.Controls
                         typeNode.Nodes.Add(node);
                     }
                 }
+                else if (item is ContentSnippet)
+                {
+                    typeNode = parentNode.Nodes["ContentSnippet"];
+                    if (typeNode == null)
+                    {
+                        typeNode = new TreeNode("Content Snippets") { Name = "ContentSnippet" };
+                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        var htmlSnippetsNode = new TreeNode("Html") { Name = "Html" };
+                        var textSnippetsNode = new TreeNode("Text") { Name = "Text" };
+
+                        typeNode.Nodes.Add(htmlSnippetsNode);
+                        typeNode.Nodes.Add(textSnippetsNode);
+                    }
+                    ContentSnippet snippet = (ContentSnippet)item;
+                    snippet.Code.StateChanged += JavaScript_StateChanged;
+
+                    var node = new TreeNode(snippet.Name) { Tag = snippet.Code };
+                    snippet.Code.Node = node;
+
+                    if (snippet.Type == "Text")
+                    {
+                        typeNode.Nodes["Text"].Nodes.Add(node);
+                    }
+                    else
+                    {
+                        typeNode.Nodes["Html"].Nodes.Add(node);
+                    }
+                }
                 else
                 {
                     throw new Exception($"Unsupported portal item type: {item.GetType().Name}");
@@ -275,6 +311,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 ApplyCounting(node, "WebTemplate");
                 ApplyCounting(node, "WebFile");
                 ApplyCounting(node, "WebForm");
+                CountContentSnippet(node);
 
                 tvCodeItems.Nodes.Add(node);
                 node.Expand();
@@ -288,7 +325,19 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 parentNode.Nodes[nodeName].Text += $" ({parentNode.Nodes[nodeName].Nodes.Count})";
             }
         }
+        private void CountContentSnippet(TreeNode parentNode)
+        {
+            if (parentNode.Nodes.ContainsKey("ContentSnippet"))
+            {
+                var cSnippet = parentNode.Nodes["ContentSnippet"].Nodes[0].GetNodeCount(true);
+                var cSnippet2 = parentNode.Nodes["ContentSnippet"].Nodes[1].GetNodeCount(true);
 
+                ApplyCounting(parentNode.Nodes["ContentSnippet"], "Html");
+                ApplyCounting(parentNode.Nodes["ContentSnippet"], "Text");
+
+                parentNode.Nodes["ContentSnippet"].Text += $" ({cSnippet + cSnippet2})";
+            }
+        }
         private void GetNodes(ICollection<TreeNode> nodes, object parent, bool onlyCheckedNodes)
         {
             var tView = parent as TreeView;
