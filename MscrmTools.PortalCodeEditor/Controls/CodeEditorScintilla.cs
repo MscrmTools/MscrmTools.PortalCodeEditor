@@ -36,7 +36,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 HighlightLiquidTags();
             };
 
-            scintilla.Margins[0].Width = 24;
+            scintilla.Margins[0].Width = 50;
 
             scintilla.StyleResetDefault();
             scintilla.Styles[Style.Default].Font = "Consolas";
@@ -234,7 +234,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
             scintilla.ClearCmdKey(Keys.Control | Keys.G);
             scintilla.ClearCmdKey(Keys.Control | Keys.H);
             scintilla.ClearCmdKey(Keys.Control | Keys.K);
-            scintilla.ClearCmdKey(Keys.Control | Keys.C);
+            //scintilla.ClearCmdKey(Keys.Control | Keys.C);
             scintilla.ClearCmdKey(Keys.Control | Keys.U);
             scintilla.AssignCmdKey(Keys.Shift | Keys.Delete, Command.LineDelete);
         }

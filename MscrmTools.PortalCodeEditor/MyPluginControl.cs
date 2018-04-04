@@ -201,6 +201,8 @@ namespace MscrmTools.PortalCodeEditor
                     portalItems.AddRange(WebFile.GetItems(Service));
                     bw.ReportProgress(0, "Loading Web form steps...");
                     portalItems.AddRange(WebFormStep.GetItems(Service));
+                    bw.ReportProgress(0, "Loading Content Snippets...");
+                    portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
 
                     portalItems.SelectMany(p => p.Items).ToList().ForEach(i => i.StateChanged += CodeItem_StateChanged);
                 },

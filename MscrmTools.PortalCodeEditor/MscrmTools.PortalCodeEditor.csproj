@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppCode\CodeItem.cs" />
+    <Compile Include="AppCode\ContentSnippet.cs" />
     <Compile Include="AppCode\EditablePortalItem.cs" />
     <Compile Include="AppCode\WebFormStep.cs" />
     <Compile Include="AppCode\EntityList.cs" />
