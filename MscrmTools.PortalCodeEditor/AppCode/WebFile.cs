@@ -47,7 +47,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         {
             var records = service.RetrieveMultiple(new QueryExpression("annotation")
             {
-                ColumnSet = new ColumnSet("filename", "documentbody"),
+                ColumnSet = new ColumnSet("filename", "documentbody", "objectid", "modifiedon"),
                 LinkEntities =
                 {
                     new LinkEntity
@@ -81,7 +81,12 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 }
             }).Entities;
 
-            return records.Select(record => new WebFile(record)).ToList();
+            return records.Select(record => new WebFile(record))
+                .ToList()
+                .OrderByDescending(e => e.innerRecord.GetAttributeValue<DateTime>("modifiedon")).ToList()
+                .GroupBy(e => e.innerRecord.GetAttributeValue<EntityReference>("objectid").Id.ToString()).ToList()
+                .Select(g => g.First())
+                .ToList();
         }
 
         public override void Update(IOrganizationService service, bool forceUpdate = false)
