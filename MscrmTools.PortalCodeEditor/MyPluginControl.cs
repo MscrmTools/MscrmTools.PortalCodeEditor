@@ -1,16 +1,16 @@
-﻿using System;
+﻿using McTools.Xrm.Connection;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using MscrmTools.PortalCodeEditor.AppCode;
+using MscrmTools.PortalCodeEditor.AppCode.EventArgs;
+using MscrmTools.PortalCodeEditor.Forms;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
-using System.Web.ApplicationServices;
 using System.Windows.Forms;
-using Microsoft.Xrm.Sdk;
-using MscrmTools.PortalCodeEditor.AppCode;
-using MscrmTools.PortalCodeEditor.AppCode.EventArgs;
-using MscrmTools.PortalCodeEditor.Controls;
-using MscrmTools.PortalCodeEditor.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
 
@@ -20,9 +20,10 @@ namespace MscrmTools.PortalCodeEditor
     {
         #region Variables
 
-        private List<EditablePortalItem> portalItems;
-        private Settings mySettings;
+        private CodeTreeViewForm ctvf;
         private bool isLegacyPortal;
+        private Settings mySettings;
+        private List<EditablePortalItem> portalItems;
 
         #endregion Variables
 
@@ -32,6 +33,8 @@ namespace MscrmTools.PortalCodeEditor
         {
             InitializeComponent();
 
+            dpMain.Theme = new VS2015LightTheme();
+
             portalItems = new List<EditablePortalItem>();
         }
 
@@ -39,9 +42,9 @@ namespace MscrmTools.PortalCodeEditor
 
         #region Properties
 
+        public string HelpUrl => "https://github.com/MscrmTools/MscrmTools.PortalCodeEditor/wiki";
         public string RepositoryName => "MscrmTools.PortalCodeEditor";
         public string UserName => "MscrmTools";
-        public string HelpUrl => "https://github.com/MscrmTools/MscrmTools.PortalCodeEditor/wiki";
 
         #endregion Properties
 
@@ -54,6 +57,11 @@ namespace MscrmTools.PortalCodeEditor
             {
                 mySettings = new Settings();
             }
+
+            ctvf = new CodeTreeViewForm { Service = Service };
+            ctvf.PortalItemSelected += Ctvf_PortalItemSelected;
+            ctvf.ActionRequested += Ctvf_ActionRequested;
+            ctvf.Show(dpMain, DockState.DockLeft);
         }
 
         private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
@@ -66,91 +74,63 @@ namespace MscrmTools.PortalCodeEditor
 
         #region Treeview events
 
-        private void ctv_PortalItemSelected(object sender, PortalItemSelectedEventArgs e)
+        private void Content_UpdateRequested(object sender, UpdateRequestedEventArgs e)
         {
-            tcCodeContents.Padding = new Point(20, tcCodeContents.Padding.Y);
-
-            if (e.Item != null)
-            {
-                var key = $"{e.Item.Parent.Id}{e.Item.Type}";
-
-                TabPage tab;
-
-                if (tcCodeContents.TabPages.ContainsKey(key))
-                {
-                    tab = tcCodeContents.TabPages[key];
-                    tcCodeContents.SelectedTab = tab;
-                }
-                else
-                {
-                    tab = new TabPage
-                    {
-                        Text = e.Item.Parent.Name,
-                        Name = key,
-                        Tag = e.Item,
-                        Width = TextRenderer.MeasureText(e.Item.Parent.Name, tcCodeContents.Font).Width + 40
-                    };
-
-                    var ce = new CodeEditorScintilla(e.Item, mySettings)
-                    {
-                        Dock = DockStyle.Fill
-                    };
-
-                    tab.Controls.Add(ce);
-                    tcCodeContents.TabPages.Add(tab);
-                    tcCodeContents.SelectedTab = tab;
-                }
-
-                ManageCodeContentToolbarDisplay(e.Item);
-
-                lblItemSelected.Text =
-                    $"{e.Item.Parent.Name} {(e.Item.Parent is WebPage ? (e.Item.Type == CodeItemType.JavaScript ? "(JavaScript)" : "(Style)") : "")}";
-            }
+            Update(new List<EditablePortalItem> { e.Item.Parent });
         }
 
-        private void ManageCodeContentToolbarDisplay(CodeItem item)
+        private void Ctvf_ActionRequested(object sender, EventArgs e)
         {
-            tsbBeautify.Visible = item.Type != CodeItemType.LiquidTemplate;
-            tsbMinifyJS.Visible = item.Type != CodeItemType.LiquidTemplate;
-        }
-
-        private void ctv_ActionRequested(object sender, EventArgs e)
-        {
-            var updateItemsArgs = e as UpdatePendingChangesEventArgs;
-            if (updateItemsArgs != null)
+            if (e is UpdatePendingChangesEventArgs updateItemsArgs)
             {
                 Update(updateItemsArgs.Items.ToList());
                 return;
             }
 
-            var refreshArgs = e as RefreshContentEventArgs;
-            if (refreshArgs != null)
+            if (e is RefreshContentEventArgs refreshArgs)
             {
-                var epi = refreshArgs.Item as EditablePortalItem;
-                if (epi != null)
+                if (refreshArgs.Item is EditablePortalItem epi)
                 {
                     foreach (var item in epi.Items)
                     {
                         item.Refresh(Service);
 
-                        foreach (var page in tcCodeContents.TabPages.Cast<TabPage>().Where(p => p.Tag == item))
+                        foreach (var page in dpMain.Contents.OfType<CodeEditorForm>().Where(c => c.Item == item))
                         {
-                            ((CodeEditorScintilla)page.Controls[0]).RefreshContent(item.Content);
+                            page.RefreshContent(item.Content);
                         }
                     }
                 }
                 else
                 {
-                    var ci = refreshArgs.Item as CodeItem;
-                    if (ci != null)
+                    if (refreshArgs.Item is CodeItem ci)
                     {
                         ci.Refresh(Service);
 
-                        foreach (var page in tcCodeContents.TabPages.Cast<TabPage>().Where(p => p.Tag == ci))
+                        foreach (var page in dpMain.Contents.OfType<CodeEditorForm>().Where(c => c.Item == ci))
                         {
-                            ((CodeEditorScintilla)page.Controls[0]).RefreshContent(ci.Content);
+                            page.RefreshContent(ci.Content);
                         }
                     }
+                }
+            }
+        }
+
+        private void Ctvf_PortalItemSelected(object sender, PortalItemSelectedEventArgs e)
+        {
+            if (e.Item != null)
+            {
+                var content = dpMain.Contents.OfType<CodeEditorForm>().FirstOrDefault(c => c.Item == e.Item);
+                if (content == null)
+                {
+                    content = new CodeEditorForm(e.Item, mySettings, Service);
+                    content.UpdateRequested += Content_UpdateRequested;
+                    content.TabPageContextMenuStrip = cmsTab;
+                    content.Show(dpMain, DockState.Document);
+                }
+                else
+                {
+                    content.Show(dpMain, content.DockState);
                 }
             }
         }
@@ -159,30 +139,9 @@ namespace MscrmTools.PortalCodeEditor
 
         #region Main menu events
 
-        private void tsbClose_Click(object sender, EventArgs e)
-        {
-            CloseTool();
-        }
-
-        private void tsbLoadItems_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.TabCount > 0)
-            {
-                var message =
-                    $"Reloading items will close the {tcCodeContents.TabCount} item{(tcCodeContents.TabCount > 1 ? "s" : "")} opened.\n\nAre you sure you want to reload items?";
-                if (MessageBox.Show(this, message, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) ==
-                    DialogResult.No)
-                    return;
-            }
-
-            tcCodeContents.TabPages.Clear();
-
-            ExecuteMethod(LoadItems);
-        }
-
         private void LoadItems()
         {
-            ctv.Enabled = false;
+            ctvf.Enabled = false;
             WorkAsync(new WorkAsyncInfo
             {
                 Message = "Loading portal items...",
@@ -204,7 +163,14 @@ namespace MscrmTools.PortalCodeEditor
                     bw.ReportProgress(0, "Loading Content Snippets...");
                     portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
 
-                    portalItems.SelectMany(p => p.Items).ToList().ForEach(i => i.StateChanged += CodeItem_StateChanged);
+                    if (!isLegacyPortal)
+                    {
+                        bw.ReportProgress(0, "Loading Portal languages...");
+                        ctvf.Languages = Service.RetrieveMultiple(new QueryExpression("adx_websitelanguage")
+                        {
+                            ColumnSet = new ColumnSet(true)
+                        }).Entities.ToList();
+                    }
                 },
                 ProgressChanged = e =>
                 {
@@ -230,23 +196,10 @@ namespace MscrmTools.PortalCodeEditor
                         }
                     }
 
-                    ctv.DisplayCodeItems(portalItems, isLegacyPortal);
-                    ctv.Enabled = true;
+                    ctvf.DisplayCodeItems(portalItems, isLegacyPortal);
+                    ctvf.Enabled = true;
                 }
             });
-        }
-
-        private void tsbUpdateCheckedItems_Click(object sender, EventArgs e)
-        {
-            Update(ctv.CheckedItems);
-        }
-
-        private void tsbSettings_Click(object sender, EventArgs e)
-        {
-            var sDialog = new SettingsDialog(mySettings);
-            sDialog.ShowDialog(this);
-
-            SettingsManager.Instance.Save(GetType(), mySettings);
         }
 
         private void tsbCredits_Click(object sender, EventArgs e)
@@ -265,178 +218,84 @@ namespace MscrmTools.PortalCodeEditor
             MessageBox.Show(this, message.ToString(), "Icons credits", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        private void tsbLoadItems_Click(object sender, EventArgs e)
+        {
+            if (dpMain.Contents.OfType<CodeEditorForm>().Any())
+            {
+                var message =
+                    $"Reloading items will close the {dpMain.Contents.OfType<CodeEditorForm>().Count()} item{(dpMain.Contents.OfType<CodeEditorForm>().Count() > 1 ? "s" : "")} opened.\n\nAre you sure you want to reload items?";
+                if (MessageBox.Show(this, message, "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) ==
+                    DialogResult.No)
+                    return;
+            }
+
+            var list = dpMain.Contents.OfType<CodeEditorForm>().ToList();
+            foreach (var item in list)
+            {
+                item.Close();
+            }
+
+            ExecuteMethod(LoadItems);
+        }
+
+        private void tsbSettings_Click(object sender, EventArgs e)
+        {
+            var sDialog = new SettingsDialog(mySettings);
+            sDialog.ShowDialog(this);
+
+            SettingsManager.Instance.Save(GetType(), mySettings);
+        }
+
+        private void tsbUpdateCheckedItems_Click(object sender, EventArgs e)
+        {
+            Update(ctvf.CheckedItems);
+        }
+
         #endregion Main menu events
-
-        #region Code content events
-
-        private void fileMenuSave_Click(object sender, EventArgs e)
-        {
-            var codeItem = (CodeItem)tcCodeContents.SelectedTab.Tag;
-            var codeCtrl = tcCodeContents.SelectedTab.Controls[0] as CodeEditorScintilla;
-            if (codeCtrl != null)
-            {
-                codeCtrl.Save();
-                codeItem.State = CodeItemState.Saved;
-
-                //tcCodeContents.SelectedTab.ForeColor = Color.Blue;
-                //tcCodeContents.SelectedTab.Text = $"{codeItem.Parent.Name} !";
-            }
-        }
-
-        private void fileMenuUpdate_Click(object sender, EventArgs e)
-        {
-            fileMenuSave_Click(null, null);
-
-            var item = tcCodeContents.SelectedTab.Tag as CodeItem;
-            if (item != null)
-            {
-                Update(new List<EditablePortalItem> { item.Parent });
-            }
-        }
-
-        private void findToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            var control = (CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0];
-
-            control.Find(false, this);
-        }
-
-        private void replaceToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            var control = (CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0];
-
-            control.Find(true, this);
-        }
-
-        private void goToLineToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            var control = (CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0];
-
-            control.GoToLine();
-        }
-
-        private void tsbMinifyJS_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            if (DialogResult.Yes ==
-                MessageBox.Show(this,
-                    "Are you sure you want to compress this script? After saving the compressed script, you won't be able to retrieve original content",
-                    "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
-                ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).MinifyJs();
-        }
-
-        private void tsbBeautify_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).Beautify();
-        }
-
-        private void tsbGetLatestVersion_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            var ci = tcCodeContents.SelectedTab.Tag as CodeItem;
-            if (ci == null)
-            {
-                return;
-            }
-
-            ci.Refresh(Service);
-
-            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).RefreshContent(ci.Content);
-        }
-
-        private void tsbComment_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).CommentSelectedLines();
-        }
-
-        private void tsbnUncomment_Click(object sender, EventArgs e)
-        {
-            if (tcCodeContents.SelectedTab == null || tcCodeContents.SelectedTab.Controls.Count == 0)
-                return;
-
-            ((CodeEditorScintilla)tcCodeContents.SelectedTab.Controls[0]).UncommentSelectedLines();
-        }
-
-        #endregion Code content events
 
         #region Tab management
 
-        private TabPage rightClickedTabPage;
-
-        private void tcCodeContents_SelectedIndexChanged(object sender, EventArgs e)
+        private void closeAllButThisTabToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var item = tcCodeContents.SelectedTab?.Tag as CodeItem;
-            if (item == null)
+            if (dpMain.ActiveContent is CodeEditorForm cef)
             {
-                return;
+                var list = dpMain.Contents.OfType<CodeEditorForm>().ToList();
+                list.Remove(cef);
+                CloseForms(list);
             }
-
-            lblItemSelected.Text = $"{item.Parent.Name} {(item.Parent is WebPage ? "(" + item.Type + ")" : "")}";
-            lblItemSelected.ForeColor = tcCodeContents.SelectedTab.ForeColor;
-        }
-
-        private void closeThisTabToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            CloseTabs(new List<TabPage> { rightClickedTabPage });
         }
 
         private void closeAllTabsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CloseTabs(tcCodeContents.TabPages.Cast<TabPage>());
+            CloseForms(dpMain.Contents.OfType<CodeEditorForm>().ToList());
         }
 
-        private void colseAllButThisTabToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CloseForms(List<CodeEditorForm> forms)
         {
-            var list = tcCodeContents.TabPages.Cast<TabPage>().ToList();
-            list.Remove(rightClickedTabPage);
-            CloseTabs(list);
-        }
-
-        private void CloseTabs(IEnumerable<TabPage> tabs)
-        {
-            foreach (var tab in tabs)
+            foreach (var form in forms)
             {
-                tcCodeContents.TabPages.Remove(tab);
+                form.Close();
             }
         }
 
-        private void tcCodeContents_MouseClick(object sender, MouseEventArgs e)
+        private void closeThisTabToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
-                for (int i = 0; i < tcCodeContents.TabCount; ++i)
-                {
-                    if (tcCodeContents.GetTabRect(i).Contains(e.Location))
-                    {
-                        rightClickedTabPage = (TabPage)tcCodeContents.Controls[i];
-                    }
-                }
-                cmsTab.Show(tcCodeContents, e.Location);
-            }
+            if (dpMain.ActiveContent is CodeEditorForm cef)
+                CloseForms(new List<CodeEditorForm> { cef });
         }
 
         #endregion Tab management
 
         #region Other methods
+
+        public override void UpdateConnection(IOrganizationService newService, ConnectionDetail detail,
+            string actionName, object parameter)
+        {
+            if (ctvf != null)
+                ctvf.Service = newService;
+
+            base.UpdateConnection(newService, detail, actionName, parameter);
+        }
 
         private void Update(List<EditablePortalItem> items)
         {
@@ -502,38 +361,6 @@ namespace MscrmTools.PortalCodeEditor
             });
         }
 
-        private void CodeItem_StateChanged(object sender, EventArgs e)
-        {
-            var ci = (CodeItem)sender;
-
-            if (tcCodeContents.SelectedTab.Tag == ci)
-            {
-                tcCodeContents.SelectedTab.ForeColor = ci.Node.ForeColor;
-                lblItemSelected.ForeColor = ci.Node.ForeColor;
-
-                switch (ci.State)
-                {
-                    case CodeItemState.None:
-                        tcCodeContents.SelectedTab.Text = ci.Parent.Name;
-                        tsmiSave.Enabled = false;
-                        tsmiUpdate.Enabled = false;
-                        break;
-
-                    case CodeItemState.Draft:
-                        tcCodeContents.SelectedTab.Text = $"{ci.Parent.Name} *";
-                        tsmiSave.Enabled = true;
-                        tsmiUpdate.Enabled = false;
-                        break;
-
-                    case CodeItemState.Saved:
-                        tcCodeContents.SelectedTab.Text = $"{ci.Parent.Name} !";
-                        tsmiSave.Enabled = false;
-                        tsmiUpdate.Enabled = true;
-                        break;
-                }
-            }
-        }
-
         #endregion Other methods
 
         #region IShortcutReceiver
@@ -542,51 +369,54 @@ namespace MscrmTools.PortalCodeEditor
 
         public void ReceiveKeyDownShortcut(KeyEventArgs e)
         {
-            if (e.Control && e.KeyCode == Keys.S)
+            if (dpMain.ActiveContent is CodeEditorForm cef)
             {
-                fileMenuSave_Click(tsddbEdit, new EventArgs());
-            }
-            else if (e.Control && e.KeyCode == Keys.U)
-            {
-                if (isCtrlK)
+                if (e.Control && e.KeyCode == Keys.S)
                 {
-                    tsbnUncomment_Click(tsbnUncomment, new EventArgs());
+                    cef.Save();
+                }
+                else if (e.Control && e.KeyCode == Keys.U)
+                {
+                    if (isCtrlK)
+                    {
+                        cef.UncommentSelectedLines();
+                    }
+                    else
+                    {
+                        cef.UpdateItem();
+                    }
+
+                    isCtrlK = false;
+                }
+                else if (e.Control && e.KeyCode == Keys.G)
+                {
+                    cef.GoToLine();
+                }
+                else if (e.Control && e.KeyCode == Keys.F)
+                {
+                    cef.Find(false, this);
+                }
+                else if (e.Control && e.KeyCode == Keys.H)
+                {
+                    cef.Find(true, this);
+                }
+                else if (e.Control && e.KeyCode == Keys.K)
+                {
+                    isCtrlK = true;
+                }
+                else if (e.Control && e.KeyCode == Keys.C)
+                {
+                    if (isCtrlK)
+                    {
+                        cef.CommentSelectedLines();
+                    }
+
+                    isCtrlK = false;
                 }
                 else
                 {
-                    fileMenuUpdate_Click(tsddbEdit, new EventArgs());
+                    isCtrlK = false;
                 }
-
-                isCtrlK = false;
-            }
-            else if (e.Control && e.KeyCode == Keys.G)
-            {
-                goToLineToolStripMenuItem_Click(toolStripDropDownButton1, new EventArgs());
-            }
-            else if (e.Control && e.KeyCode == Keys.F)
-            {
-                findToolStripMenuItem_Click(toolStripDropDownButton1, new EventArgs());
-            }
-            else if (e.Control && e.KeyCode == Keys.H)
-            {
-                replaceToolStripMenuItem_Click(toolStripDropDownButton1, new EventArgs());
-            }
-            else if (e.Control && e.KeyCode == Keys.K)
-            {
-                isCtrlK = true;
-            }
-            else if (e.Control && e.KeyCode == Keys.C)
-            {
-                if (isCtrlK)
-                {
-                    tsbComment_Click(tsbComment, new EventArgs());
-                }
-
-                isCtrlK = false;
-            }
-            else
-            {
-                isCtrlK = false;
             }
         }
 

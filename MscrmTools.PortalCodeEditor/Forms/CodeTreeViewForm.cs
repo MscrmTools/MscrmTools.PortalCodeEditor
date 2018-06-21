@@ -1,4 +1,5 @@
-﻿using MscrmTools.PortalCodeEditor.AppCode;
+﻿using Microsoft.Xrm.Sdk;
+using MscrmTools.PortalCodeEditor.AppCode;
 using MscrmTools.PortalCodeEditor.AppCode.EventArgs;
 using System;
 using System.Collections.Generic;
@@ -6,14 +7,15 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
-namespace MscrmTools.PortalCodeEditor.Controls
+namespace MscrmTools.PortalCodeEditor.Forms
 {
-    public partial class CodeTreeView : UserControl
+    public partial class CodeTreeViewForm : DockContent
     {
         private List<EditablePortalItem> portalItems;
 
-        public CodeTreeView()
+        public CodeTreeViewForm()
         {
             InitializeComponent();
 
@@ -38,7 +40,8 @@ namespace MscrmTools.PortalCodeEditor.Controls
         }
 
         public bool IsLegacyPortal { get; set; }
-        public object SelectedItem => tvCodeItems.SelectedNode?.Tag;
+        public List<Entity> Languages { get; set; }
+        public IOrganizationService Service { get; set; }
 
         public void DisplayCodeItems(List<EditablePortalItem> items, bool isLegacyPortal)
         {
@@ -73,7 +76,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 if (websiteReference == null) { continue; }
 
                 TreeNode parentNode;
-                TreeNode contentSnippetsNode;
+
                 if (rootNodes.ContainsKey(websiteReference.Id))
                 {
                     parentNode = rootNodes[websiteReference.Id];
@@ -81,27 +84,20 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 else
                 {
                     var name = websiteReference.Id == Guid.Empty ? "(Not website related)" : websiteReference.Name;
-                    var rootNode = new TreeNode(name);
+                    var rootNode = new TreeNode(name) { Tag = websiteReference };
 
-                    var snippetsNode = new TreeNode("Content Snippets") { Name = "ContentSnippet" };
-                    var htmlSnippetsNode = new TreeNode("Html") { Name = "Html" };
-                    var textSnippetsNode = new TreeNode("Text") { Name = "Text" };
-                    snippetsNode.Nodes.Add(htmlSnippetsNode);
-                    snippetsNode.Nodes.Add(textSnippetsNode);
                     rootNodes.Add(websiteReference.Id, rootNode);
                     parentNode = rootNode;
-                    contentSnippetsNode = snippetsNode;
 
                     parentNode.Nodes.Add(new TreeNode("Web Pages") { Name = "WebPage" });
 
                     if (!IsLegacyPortal)
                     {
+                        parentNode.Nodes.Add(new TreeNode("Content Snippets") { Name = "ContentSnippet" });
                         parentNode.Nodes.Add(new TreeNode("Entity Forms") { Name = "EntityForm" });
                         parentNode.Nodes.Add(new TreeNode("Entity Lists") { Name = "EntityList" });
                         parentNode.Nodes.Add(new TreeNode("Web Forms") { Name = "WebForm" });
                         parentNode.Nodes.Add(new TreeNode("Web Templates") { Name = "WebTemplate" });
-
-                        parentNode.Nodes.Add(snippetsNode);
                     }
 
                     parentNode.Nodes.Add(new TreeNode("Web Files") { Name = "WebFile" });
@@ -109,11 +105,10 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
                 TreeNode typeNode;
 
-                if (item is WebPage)
+                if (item is WebPage page)
                 {
                     typeNode = parentNode.Nodes["WebPage"];
 
-                    WebPage page = (WebPage)item;
                     page.JavaScript.StateChanged += JavaScript_StateChanged;
                     page.Style.StateChanged += JavaScript_StateChanged;
 
@@ -155,17 +150,16 @@ namespace MscrmTools.PortalCodeEditor.Controls
                         parentPageNode.Nodes.Add(node);
                     }
                 }
-                else if (item is EntityForm)
+                else if (item is EntityForm form)
                 {
                     typeNode = parentNode.Nodes["EntityForm"];
 
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Entity Forms") { Name = "EntityForm" };
-                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        rootNodes[form.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
-                    EntityForm form = (EntityForm)item;
                     form.JavaScript.StateChanged += JavaScript_StateChanged;
 
                     var node = new TreeNode(form.Name) { Tag = form.JavaScript };
@@ -173,17 +167,16 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
                     typeNode.Nodes.Add(node);
                 }
-                else if (item is EntityList)
+                else if (item is EntityList list)
                 {
                     typeNode = parentNode.Nodes["EntityList"];
 
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Entity Lists") { Name = "EntityList" };
-                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        rootNodes[list.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
-                    EntityList list = (EntityList)item;
                     list.JavaScript.StateChanged += JavaScript_StateChanged;
 
                     var node = new TreeNode(list.Name) { Tag = list.JavaScript };
@@ -191,17 +184,16 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
                     typeNode.Nodes.Add(node);
                 }
-                else if (item is WebTemplate)
+                else if (item is WebTemplate template)
                 {
                     typeNode = parentNode.Nodes["WebTemplate"];
 
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Web Templates") { Name = "WebTemplate" };
-                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        rootNodes[template.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
-                    WebTemplate template = (WebTemplate)item;
                     template.Code.StateChanged += JavaScript_StateChanged;
 
                     var node = new TreeNode(template.Name) { Tag = template.Code };
@@ -209,17 +201,16 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
                     typeNode.Nodes.Add(node);
                 }
-                else if (item is WebFile)
+                else if (item is WebFile file)
                 {
                     typeNode = parentNode.Nodes["WebFile"];
 
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Web Files") { Name = "WebFile" };
-                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        rootNodes[file.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
-                    WebFile file = (WebFile)item;
                     file.Code.StateChanged += JavaScript_StateChanged;
 
                     var node = new TreeNode(file.Name) { Tag = file.Code };
@@ -227,17 +218,16 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
                     typeNode.Nodes.Add(node);
                 }
-                else if (item is WebFormStep)
+                else if (item is WebFormStep wfStep)
                 {
                     typeNode = parentNode.Nodes["WebForm"];
 
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Web Forms") { Name = "WebForm" };
-                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        rootNodes[wfStep.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
-                    WebFormStep wfStep = (WebFormStep)item;
                     wfStep.JavaScript.StateChanged += JavaScript_StateChanged;
 
                     var node = new TreeNode(wfStep.Name) { Tag = wfStep.JavaScript };
@@ -268,20 +258,28 @@ namespace MscrmTools.PortalCodeEditor.Controls
                         typeNode.Nodes.Add(node);
                     }
                 }
-                else if (item is ContentSnippet)
+                else if (item is ContentSnippet snippet)
                 {
                     typeNode = parentNode.Nodes["ContentSnippet"];
+
                     if (typeNode == null)
                     {
                         typeNode = new TreeNode("Content Snippets") { Name = "ContentSnippet" };
-                        rootNodes[item.WebsiteReference.Id].Nodes.Add(typeNode);
+                        rootNodes[snippet.WebsiteReference.Id].Nodes.Add(typeNode);
                         var htmlSnippetsNode = new TreeNode("Html") { Name = "Html" };
                         var textSnippetsNode = new TreeNode("Text") { Name = "Text" };
 
                         typeNode.Nodes.Add(htmlSnippetsNode);
                         typeNode.Nodes.Add(textSnippetsNode);
                     }
-                    ContentSnippet snippet = (ContentSnippet)item;
+                    else if (typeNode.Nodes["Html"] == null)
+                    {
+                        var htmlSnippetsNode = new TreeNode("Html") { Name = "Html" };
+                        var textSnippetsNode = new TreeNode("Text") { Name = "Text" };
+                        typeNode.Nodes.Add(htmlSnippetsNode);
+                        typeNode.Nodes.Add(textSnippetsNode);
+                    }
+
                     snippet.Code.StateChanged += JavaScript_StateChanged;
 
                     var node = new TreeNode(snippet.Name) { Tag = snippet.Code };
@@ -313,6 +311,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 CountContentSnippet(node);
 
                 tvCodeItems.Nodes.Add(node);
+                tvCodeItems.Sort();
                 node.Expand();
             }
         }
@@ -321,7 +320,9 @@ namespace MscrmTools.PortalCodeEditor.Controls
         {
             if (parentNode.Nodes.ContainsKey(nodeName))
             {
-                parentNode.Nodes[nodeName].Text += $" ({parentNode.Nodes[nodeName].Nodes.Count})";
+                var trimedName = parentNode.Nodes[nodeName].Text.Split('(')[0]?.Trim();
+
+                parentNode.Nodes[nodeName].Text = $"{trimedName} ({parentNode.Nodes[nodeName].Nodes.Count})";
             }
         }
 
@@ -331,17 +332,120 @@ namespace MscrmTools.PortalCodeEditor.Controls
                 node.Checked = chkSelectAll.Checked;
         }
 
+        private void cmsTreeview_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if (e.ClickedItem == tsmiRefreshFromPortal)
+            {
+                var item = tvCodeItems.SelectedNode.Tag;
+
+                if (item == null)
+                {
+                    return;
+                }
+
+                ActionRequested?.Invoke(this, new RefreshContentEventArgs(item));
+            }
+            else if (e.ClickedItem == tsmiUpdate)
+            {
+                var item = tvCodeItems.SelectedNode.Tag;
+
+                if (item == null)
+                {
+                    return;
+                }
+
+                var portalItem = item as EditablePortalItem;
+                var epi = portalItem ?? ((CodeItem)item).Parent;
+
+                ActionRequested?.Invoke(this, new UpdatePendingChangesEventArgs(new List<EditablePortalItem> { epi }));
+            }
+            else if (e.ClickedItem == tsmiCreateNewItem)
+            {
+                var node = tvCodeItems.SelectedNode;
+                while (node.Parent != null)
+                {
+                    node = node.Parent;
+                }
+
+                if (tvCodeItems.SelectedNode.Name == "WebTemplate")
+                {
+                    var dialog = new NewWebTemplateForm(Service, node.Tag as EntityReference);
+                    if (dialog.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var newTemplate = new WebTemplate(dialog.Template);
+                        newTemplate.Code.StateChanged += JavaScript_StateChanged;
+
+                        var newNode = new TreeNode(newTemplate.Name) { Tag = newTemplate.Code };
+                        newTemplate.Code.Node = newNode;
+
+                        tvCodeItems.SelectedNode.Nodes.Add(newNode);
+                        tvCodeItems.Sort();
+
+                        ApplyCounting(node, "WebTemplate");
+                    }
+                }
+                else if (tvCodeItems.SelectedNode.Name == "Html")
+                {
+                    var dialog = new NewContentSnippetForm(756150001, Service, node.Tag as EntityReference, Languages);
+                    if (dialog.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var newContentSnippet = new ContentSnippet(dialog.Template);
+                        newContentSnippet.Code.StateChanged += JavaScript_StateChanged;
+
+                        var newNode = new TreeNode(newContentSnippet.Name) { Tag = newContentSnippet.Code };
+                        newContentSnippet.Code.Node = newNode;
+
+                        tvCodeItems.SelectedNode.Nodes.Add(newNode);
+                        tvCodeItems.Sort();
+
+                        CountContentSnippet(node);
+                    }
+                }
+                else if (tvCodeItems.SelectedNode.Name == "Text")
+                {
+                    var dialog = new NewContentSnippetForm(756150000, Service, node.Tag as EntityReference, Languages);
+                    if (dialog.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var newContentSnippet = new ContentSnippet(dialog.Template);
+                        newContentSnippet.Code.StateChanged += JavaScript_StateChanged;
+
+                        var newNode = new TreeNode(newContentSnippet.Name) { Tag = newContentSnippet.Code };
+                        newContentSnippet.Code.Node = newNode;
+
+                        tvCodeItems.SelectedNode.Nodes.Add(newNode);
+                        tvCodeItems.Sort();
+
+                        CountContentSnippet(node);
+                    }
+                }
+            }
+        }
+
+        private void cmsTreeview_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var selectedNode = tvCodeItems.SelectedNode;
+            tsmiUpdate.Visible = selectedNode.Name != "WebTemplate" && selectedNode.Name != "Html" && selectedNode.Name != "Text";
+            tsmiRefreshFromPortal.Visible = selectedNode.Name != "WebTemplate" && selectedNode.Name != "Html" && selectedNode.Name != "Text";
+            tsmiCreateNewItem.Visible = selectedNode.Name == "WebTemplate" || selectedNode.Name == "Html" || selectedNode.Name == "Text";
+
+            tsmiCreateNewItem.Text = string.Format(tsmiCreateNewItem.Tag.ToString(), selectedNode.Name == "WebTemplate" ? "Web template" : "Content snippet");
+        }
+
         private void CountContentSnippet(TreeNode parentNode)
         {
             if (parentNode.Nodes.ContainsKey("ContentSnippet"))
             {
+                if (parentNode.Nodes["ContentSnippet"].Nodes.Count != 2)
+                    return;
+
                 var cSnippet = parentNode.Nodes["ContentSnippet"].Nodes[0].GetNodeCount(true);
                 var cSnippet2 = parentNode.Nodes["ContentSnippet"].Nodes[1].GetNodeCount(true);
 
                 ApplyCounting(parentNode.Nodes["ContentSnippet"], "Html");
                 ApplyCounting(parentNode.Nodes["ContentSnippet"], "Text");
 
-                parentNode.Nodes["ContentSnippet"].Text += $" ({cSnippet + cSnippet2})";
+                var text = parentNode.Nodes["ContentSnippet"].Text.Split('(')[0].Trim();
+                parentNode.Nodes["ContentSnippet"].Text = $"{text} ({cSnippet + cSnippet2})";
             }
         }
 
@@ -421,18 +525,6 @@ namespace MscrmTools.PortalCodeEditor.Controls
             tvCodeItems.ExpandAll();
         }
 
-        private void refreshFromPortalToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var item = tvCodeItems.SelectedNode.Tag;
-
-            if (item == null)
-            {
-                return;
-            }
-
-            ActionRequested?.Invoke(this, new RefreshContentEventArgs(item));
-        }
-
         private void tvCodeItems_AfterCheck(object sender, TreeViewEventArgs e)
         {
             foreach (TreeNode node in e.Node.Nodes)
@@ -453,7 +545,7 @@ namespace MscrmTools.PortalCodeEditor.Controls
 
             var targetNode = tvCodeItems.GetNodeAt(e.X, e.Y);
 
-            if (targetNode?.Tag == null)
+            if (targetNode?.Tag == null && targetNode?.Name != "WebTemplate" && targetNode?.Name != "Html" && targetNode?.Name != "Text")
             {
                 return;
             }
@@ -508,20 +600,5 @@ namespace MscrmTools.PortalCodeEditor.Controls
         }
 
         #endregion Search methods
-
-        private void updateToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var item = tvCodeItems.SelectedNode.Tag;
-
-            if (item == null)
-            {
-                return;
-            }
-
-            var portalItem = item as EditablePortalItem;
-            var epi = portalItem ?? ((CodeItem)item).Parent;
-
-            ActionRequested?.Invoke(this, new UpdatePendingChangesEventArgs(new List<EditablePortalItem> { epi }));
-        }
     }
 }

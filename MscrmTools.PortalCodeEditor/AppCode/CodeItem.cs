@@ -62,22 +62,9 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Properties
 
-        public string EncodedContent
-        {
-            set { encodedContent = value; }
-            get
-            {
-                encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
-                return encodedContent;
-            }
-        }
-
         public string Content
         {
-            get
-            {
-                return content;
-            }
+            get => content;
             set
             {
                 content = value;
@@ -85,11 +72,25 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             }
         }
 
+        public string EncodedContent
+        {
+            set => encodedContent = value;
+            get
+            {
+                encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
+                return encodedContent;
+            }
+        }
+
         public bool IsEncoded { get; set; }
+
+        public TreeNode Node { get; set; }
+
+        public EditablePortalItem Parent { get; }
 
         public CodeItemState State
         {
-            get { return state; }
+            get => state;
 
             set
             {
@@ -128,8 +129,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         }
 
         public CodeItemType Type { get; set; }
-        public TreeNode Node { get; set; }
-        public EditablePortalItem Parent { get; }
 
         #endregion Properties
 
