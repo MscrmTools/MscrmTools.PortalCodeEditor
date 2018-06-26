@@ -1,21 +1,23 @@
-﻿
+﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
-using System.Windows;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class ContentSnippet : EditablePortalItem
     {
         #region Variables
+
         private readonly Entity innerRecord;
+
         #endregion Variables
+
         #region Constructor
+
         public ContentSnippet(Entity record)
         {
             Id = record.Id;
@@ -23,16 +25,22 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Name = record.GetAttributeValue<string>("adx_name");
             WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ?? new EntityReference("adx_website", Guid.Empty);
 
-            Type = record.GetAttributeValue<OptionSetValue>("adx_type").Value.ToString() == "756150000" ? "Text" : "Html";
+            Type = record.GetAttributeValue<OptionSetValue>("adx_type")?.Value == 756150000 ? "Text" : "Html";
             innerRecord = record;
             Items.Add(Code);
         }
+
         #endregion Constructor
+
         #region Properties
+
         public CodeItem Code { get; }
         public string Type { get; }
+
         #endregion Properties
+
         #region Methods
+
         public static List<ContentSnippet> GetItems(IOrganizationService service, ref bool isLegacyPortal)
         {
             try
@@ -60,6 +68,15 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 throw;
             }
         }
+
+        public override string RefreshContent(CodeItem item, IOrganizationService service)
+        {
+            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
+                new ColumnSet("adx_value"));
+            innerRecord.RowVersion = record.RowVersion;
+            return record.GetAttributeValue<string>("adx_value");
+        }
+
         public override void Update(IOrganizationService service, bool forceUpdate = false)
         {
             innerRecord["adx_value"] = Code.Content;
@@ -74,14 +91,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Code.State = CodeItemState.None;
             HasPendingChanges = false;
         }
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
-        {
-            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-                new ColumnSet("adx_value"));
-            innerRecord.RowVersion = record.RowVersion;
-            return record.GetAttributeValue<string>("adx_value");
-        }
+
         #endregion Methods
     }
 }
-
