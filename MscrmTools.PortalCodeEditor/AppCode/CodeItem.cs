@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -50,7 +51,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             if (isEncoded)
             {
                 encodedContent = data;
-                content = Encoding.UTF8.GetString(Convert.FromBase64String(data));
+                // use StreamReader to auto-detect encoding
+                using (var stream = new StreamReader(new MemoryStream(Convert.FromBase64String(data)), true))
+                {
+                    content = stream.ReadToEnd();
+                }
             }
             else
             {
