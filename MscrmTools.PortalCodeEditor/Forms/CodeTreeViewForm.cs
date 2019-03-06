@@ -555,21 +555,6 @@ namespace MscrmTools.PortalCodeEditor.Forms
             cmsTreeview.Show(tvCodeItems, e.Location);
         }
 
-        private void tvCodeItems_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button != MouseButtons.Left)
-                return;
-
-            var targetNode = tvCodeItems.GetNodeAt(e.X, e.Y);
-
-            if (targetNode?.Tag == null)
-            {
-                return;
-            }
-
-            PortalItemSelected?.Invoke(this, new PortalItemSelectedEventArgs(targetNode.Tag as CodeItem));
-        }
-
         #region Search methods
 
         private Thread searchThread;

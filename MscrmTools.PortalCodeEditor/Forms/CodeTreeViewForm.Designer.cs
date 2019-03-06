@@ -66,7 +66,6 @@
             this.tvCodeItems.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.tvCodeItems_AfterCheck);
             this.tvCodeItems.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvCodeItems_AfterSelect);
             this.tvCodeItems.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tvCodeItems_MouseDown);
-            this.tvCodeItems.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tvCodeItems_MouseUp);
             // 
             // pnlHeader
             // 
