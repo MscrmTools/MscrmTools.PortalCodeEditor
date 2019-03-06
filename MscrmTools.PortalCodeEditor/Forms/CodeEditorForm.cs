@@ -88,6 +88,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             tslName.Text =
                 $"{item.Parent.Name} {(item.Parent is WebPage ? (item.Type == CodeItemType.JavaScript ? "(JavaScript)" : "(Style)") : "")}";
+            TabText = tslName.Text;
 
             scintilla.Margins[0].Width = 50;
 
