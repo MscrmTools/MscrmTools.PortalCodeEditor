@@ -151,6 +151,47 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             State = CodeItemState.None;
         }
 
+        /// <summary>
+        /// Write out the contents of a CodeItem if it contains data
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="code"></param>
+        public void WriteCodeItem(string filePath)
+        {
+            string content = null;
+            if (IsEncoded)
+            {
+                if (EncodedContent != null && EncodedContent?.Length > 0)
+                {
+                    content = EncodedContent;
+                }
+            }
+            if (Content != null && Content?.Length > 0)
+            {
+                content = Content;
+            }
+            if (content != null)
+            {
+                // create the directory if needed then write to disk
+                var rootpath = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(rootpath))
+                {
+                    Directory.CreateDirectory(rootpath);
+                }
+                else {
+                    // make sure file name is unique
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var ext = Path.GetExtension(filePath);
+
+                    var counter = 1;
+                    while (File.Exists(filePath)) {
+                        filePath = Path.Combine(rootpath, $"{fileName} ({counter++})");
+                    }
+                }
+                // now write file to disk
+                File.WriteAllText(filePath, content);
+            }
+        }
         #endregion Methods
     }
 }

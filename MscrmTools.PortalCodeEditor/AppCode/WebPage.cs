@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using Microsoft.Xrm.Sdk;
@@ -10,6 +11,10 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class WebPage : EditablePortalItem
     {
+        #region Constants
+        public const string NODEKEY = "WebPage";
+        public const string NODENAME = "Web Pages";
+        #endregion
         #region Variables
 
         private readonly Entity innerRecord;
@@ -27,6 +32,8 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Style = new CodeItem(record.GetAttributeValue<string>("adx_customcss"), CodeItemType.Style, false, this);
 
             IsRoot = record.GetAttributeValue<bool>("adx_isroot");
+
+            PartialUrl = record.GetAttributeValue<string>("adx_partialurl");
 
             ParentPageId = record.GetAttributeValue<EntityReference>("adx_rootwebpageid")?.Id ?? Guid.Empty;
             Language = record.GetAttributeValue<EntityReference>("adx_webpagelanguageid")?.Name ?? "no language";
@@ -50,6 +57,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         public Guid ParentPageId { get; }
         public string Language { get; }
+        public string PartialUrl { get; }
 
         #endregion Properties
 
@@ -61,7 +69,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             {
                 var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot"),
+                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot", "adx_partialurl"),
                     Orders = { new OrderExpression("adx_isroot", OrderType.Descending), new OrderExpression("adx_name", OrderType.Ascending) }
                 }).Entities;
 
@@ -73,7 +81,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 {
                     var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid"),
+                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_partialurl"),
                         Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
                     }).Entities;
 
@@ -114,6 +122,19 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             return item.Type == CodeItemType.JavaScript
                 ? record.GetAttributeValue<string>("adx_customjavascript")
                 : record.GetAttributeValue<string>("adx_customcss");
+        }
+
+        /// <summary>
+        /// Write the contents of the code object to disk
+        /// </summary>
+        /// <param name="path"></param>
+        public override void WriteContent(string path)
+        {
+            var filePath = Path.Combine(path, "JavaScript.js");
+            JavaScript?.WriteCodeItem(filePath);
+
+            filePath = Path.Combine(path, "Style.css");
+            Style?.WriteCodeItem(filePath);
         }
 
         #endregion Methods

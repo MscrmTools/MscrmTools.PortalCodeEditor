@@ -5,11 +5,17 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System.ServiceModel;
+using System.IO;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class EntityList : EditablePortalItem
     {
+        #region Constants
+        public const string NODEKEY = "EntityList";
+        public const string NODENAME = "Entity Lists";
+        #endregion
+
         #region Variables
 
         private readonly Entity innerRecord;
@@ -99,7 +105,16 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             return record.GetAttributeValue<string>("adx_registerstartupscript");
         }
+        /// <summary>
+        /// Write the contents of the code object to disk
+        /// </summary>
+        /// <param name="path"></param>
+        public override void WriteContent(string path)
+        {
+            var filePath = Path.Combine(path, "JavaScript.js");
 
+            JavaScript?.WriteCodeItem(filePath);
+        }
         #endregion Methods
     }
 }
