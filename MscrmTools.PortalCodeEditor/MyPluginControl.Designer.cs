@@ -36,6 +36,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbLoadItems = new System.Windows.Forms.ToolStripButton();
             this.tsbCredits = new System.Windows.Forms.ToolStripButton();
             this.tsbUpdateCheckedItems = new System.Windows.Forms.ToolStripButton();
+            this.tsbExportPortalItems = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbSettings = new System.Windows.Forms.ToolStripButton();
             this.cmsTab = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -54,6 +55,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbLoadItems,
             this.tsbCredits,
             this.tsbUpdateCheckedItems,
+            this.tsbExportPortalItems,
             this.toolStripSeparator2,
             this.tsbSettings});
             this.tsMainMenu.Location = new System.Drawing.Point(0, 0);
@@ -68,7 +70,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbLoadItems.Image = ((System.Drawing.Image)(resources.GetObject("tsbLoadItems.Image")));
             this.tsbLoadItems.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbLoadItems.Name = "tsbLoadItems";
-            this.tsbLoadItems.Size = new System.Drawing.Size(134, 34);
+            this.tsbLoadItems.Size = new System.Drawing.Size(146, 34);
             this.tsbLoadItems.Text = "Load items";
             this.tsbLoadItems.Click += new System.EventHandler(this.tsbLoadItems_Click);
             // 
@@ -88,9 +90,18 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbUpdateCheckedItems.Image = ((System.Drawing.Image)(resources.GetObject("tsbUpdateCheckedItems.Image")));
             this.tsbUpdateCheckedItems.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbUpdateCheckedItems.Name = "tsbUpdateCheckedItems";
-            this.tsbUpdateCheckedItems.Size = new System.Drawing.Size(238, 34);
+            this.tsbUpdateCheckedItems.Size = new System.Drawing.Size(250, 34);
             this.tsbUpdateCheckedItems.Text = "Update checked items";
             this.tsbUpdateCheckedItems.Click += new System.EventHandler(this.tsbUpdateCheckedItems_Click);
+            // 
+            // tsbExportPortalItems
+            // 
+            this.tsbExportPortalItems.Image = ((System.Drawing.Image)(resources.GetObject("tsbExportPortalItems.Image")));
+            this.tsbExportPortalItems.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbExportPortalItems.Name = "tsbExportPortalItems";
+            this.tsbExportPortalItems.Size = new System.Drawing.Size(220, 34);
+            this.tsbExportPortalItems.Text = "Export Portal Items";
+            this.tsbExportPortalItems.Click += new System.EventHandler(this.tsbExportPortalItems_Click);
             // 
             // toolStripSeparator2
             // 
@@ -102,7 +113,7 @@ namespace MscrmTools.PortalCodeEditor
             this.tsbSettings.Image = ((System.Drawing.Image)(resources.GetObject("tsbSettings.Image")));
             this.tsbSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSettings.Name = "tsbSettings";
-            this.tsbSettings.Size = new System.Drawing.Size(107, 34);
+            this.tsbSettings.Size = new System.Drawing.Size(119, 34);
             this.tsbSettings.Text = "Settings";
             this.tsbSettings.Click += new System.EventHandler(this.tsbSettings_Click);
             // 
@@ -142,6 +153,7 @@ namespace MscrmTools.PortalCodeEditor
             this.dpMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dpMain.DocumentStyle = WeifenLuo.WinFormsUI.Docking.DocumentStyle.DockingWindow;
             this.dpMain.Location = new System.Drawing.Point(0, 37);
+            this.dpMain.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.dpMain.Name = "dpMain";
             this.dpMain.Size = new System.Drawing.Size(1375, 1015);
             this.dpMain.TabIndex = 5;
@@ -152,7 +164,7 @@ namespace MscrmTools.PortalCodeEditor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.dpMain);
             this.Controls.Add(this.tsMainMenu);
-            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "MyPluginControl";
             this.Size = new System.Drawing.Size(1375, 1052);
             this.OnCloseTool += new System.EventHandler(this.MyPluginControl_OnCloseTool);
@@ -177,5 +189,6 @@ namespace MscrmTools.PortalCodeEditor
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton tsbSettings;
         private WeifenLuo.WinFormsUI.Docking.DockPanel dpMain;
+        private System.Windows.Forms.ToolStripButton tsbExportPortalItems;
     }
 }

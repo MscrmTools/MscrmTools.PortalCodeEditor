@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class WebFile : EditablePortalItem
     {
+        #region Constants
+        public const string NODEKEY = "WebFile";
+        public const string NODENAME = "Web Files";
+        #endregion
+
         #region Variables
 
         private readonly Entity innerRecord;
@@ -125,6 +131,17 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             var data = Encoding.UTF8.GetString(Convert.FromBase64String(record.GetAttributeValue<string>("documentbody")));
 
             return data;
+        }
+
+        /// <summary>
+        /// Write the contents of the code object to disk
+        /// </summary>
+        /// <param name="path"></param>
+        public override void WriteContent(string path)
+        {
+            var filePath = Path.Combine(path, Name);
+
+            Code?.WriteCodeItem(filePath);
         }
 
         #endregion Methods

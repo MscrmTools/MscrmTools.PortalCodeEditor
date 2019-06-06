@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using McTools.Xrm.Connection;
@@ -11,6 +12,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class EntityForm : EditablePortalItem
     {
+        #region Constants
+        public const string NODEKEY = "EntityForm";
+        public const string NODENAME = "Entity Forms";
+        #endregion
+
         #region Variables
 
         private readonly Entity innerRecord;
@@ -99,6 +105,17 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             innerRecord.RowVersion = record.RowVersion;
 
             return record.GetAttributeValue<string>("adx_registerstartupscript");
+        }
+
+        /// <summary>
+        /// Write the contents of the code object to disk
+        /// </summary>
+        /// <param name="path"></param>
+        public override void WriteContent(string path)
+        {
+            var filePath = Path.Combine(path, "JavaScript.js");
+
+            JavaScript?.WriteCodeItem(filePath);
         }
 
         #endregion Methods

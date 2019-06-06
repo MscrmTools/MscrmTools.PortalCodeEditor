@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using Microsoft.Xrm.Sdk;
@@ -10,6 +11,10 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class WebFormStep : EditablePortalItem
     {
+        #region Constants
+        public const string NODEKEY = "WebForm";
+        public const string NODENAME = "Web Forms";
+        #endregion
         #region Variables
 
         private readonly Entity innerRecord;
@@ -120,6 +125,16 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             return record.GetAttributeValue<string>("adx_registerstartupscript");
         }
 
+        /// <summary>
+        /// Write the contents of the code object to disk
+        /// </summary>
+        /// <param name="path"></param>
+        public override void WriteContent(string path)
+        {
+            var filePath = Path.Combine(path, $"JavaScript.js");
+
+            JavaScript?.WriteCodeItem(filePath);
+        }
         #endregion Methods
     }
 }

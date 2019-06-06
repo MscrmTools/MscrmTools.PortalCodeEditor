@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.ServiceModel;
 
@@ -10,6 +11,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class ContentSnippet : EditablePortalItem
     {
+        #region Constants
+        public const string NODEKEY = "ContentSnippet";
+        public const string NODENAME = "Content Snippets";
+        #endregion
+
         #region Variables
 
         private readonly Entity innerRecord;
@@ -90,6 +96,16 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             innerRecord.RowVersion = updatedRecord.RowVersion;
             Code.State = CodeItemState.None;
             HasPendingChanges = false;
+        }
+        /// <summary>
+        /// Write the code item Content to disk
+        /// </summary>
+        /// <param name="path"></param>
+        public override void WriteContent(string path)
+        {
+            var ext = (Type == "Text") ? "txt" : "html";
+            var currentPath = Path.Combine(path, $"{EscapeName()}.{ext}");
+            Code.WriteCodeItem(currentPath);
         }
 
         #endregion Methods
