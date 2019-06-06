@@ -43,37 +43,37 @@ namespace MscrmTools.PortalCodeEditor.Forms
             this.item = item;
             item.StateChanged += (sender, e) =>
             {
-                var ci = (CodeItem)sender;
-                switch (ci.State)
+                Invoke(new Action(() =>
                 {
-                    case CodeItemState.None:
-                        TabText = ci.Parent.Name;
-                        tslName.ForeColor = Color.Black;
-                        tslName.Text =
-                            $"{ci.Parent.Name} {(ci.Parent is WebPage ? (ci.Type == CodeItemType.JavaScript ? "(JavaScript)" : "(Style)") : "")}";
-                        tsmiSave.Enabled = false;
-                        tsmiUpdate.Enabled = false;
-                        break;
+                    var ci = (CodeItem)sender;
+                    tslName.Text = $"{ci.Parent.Name} {(ci.Parent is WebPage ? (ci.Type == CodeItemType.JavaScript ? "(JavaScript)" : ci.Type == CodeItemType.Style ? "(Style)" : "(Content)") : "")}";
+                    switch (ci.State)
+                    {
+                        case CodeItemState.None:
+                            TabText = ci.Parent.Name;
+                            tslName.ForeColor = Color.Black;
+                            tsmiSave.Enabled = false;
+                            tsmiUpdate.Enabled = false;
+                            break;
 
-                    case CodeItemState.Draft:
-                        TabText = $"{ci.Parent.Name}*";
-                        tslName.ForeColor = Color.Red;
-                        tslName.Text =
-                            $"{ci.Parent.Name} {(ci.Parent is WebPage ? (ci.Type == CodeItemType.JavaScript ? "(JavaScript)" : "(Style)") : "")} - not saved";
+                        case CodeItemState.Draft:
+                            TabText = $"{ci.Parent.Name}*";
+                            tslName.ForeColor = Color.Red;
+                            tslName.Text += " - not saved";
 
-                        tsmiSave.Enabled = true;
-                        tsmiUpdate.Enabled = false;
-                        break;
+                            tsmiSave.Enabled = true;
+                            tsmiUpdate.Enabled = false;
+                            break;
 
-                    case CodeItemState.Saved:
-                        TabText = $"{ci.Parent.Name}!";
-                        tslName.ForeColor = Color.Blue;
-                        tslName.Text =
-                            $"{ci.Parent.Name} {(ci.Parent is WebPage ? (ci.Type == CodeItemType.JavaScript ? "(JavaScript)" : "(Style)") : "")} - not updated";
-                        tsmiSave.Enabled = false;
-                        tsmiUpdate.Enabled = true;
-                        break;
-                }
+                        case CodeItemState.Saved:
+                            TabText = $"{ci.Parent.Name}!";
+                            tslName.ForeColor = Color.Blue;
+                            tslName.Text += " - not updated";
+                            tsmiSave.Enabled = false;
+                            tsmiUpdate.Enabled = true;
+                            break;
+                    }
+                }));
             };
             this.service = service;
             this.mySettings = mySettings;
@@ -86,8 +86,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
             tsbBeautify.Visible = item.Type != CodeItemType.LiquidTemplate;
             tsbMinifyJS.Visible = item.Type != CodeItemType.LiquidTemplate;
 
-            tslName.Text =
-                $"{item.Parent.Name} {(item.Parent is WebPage ? (item.Type == CodeItemType.JavaScript ? "(JavaScript)" : "(Style)") : "")}";
+            tslName.Text = $"{item.Parent.Name} {(item.Parent is WebPage ? (item.Type == CodeItemType.JavaScript ? "(JavaScript)" : item.Type == CodeItemType.Style ? "(Style)" : "(Content)") : "")}";
             TabText = tslName.Text;
 
             scintilla.Margins[0].Width = 50;

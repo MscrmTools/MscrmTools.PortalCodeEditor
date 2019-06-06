@@ -120,11 +120,14 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
                         if (isLegacyPortal)
                         {
+                            var copyNode = new TreeNode("Content") { Tag = page.Copy };
+                            page.Copy.Node = copyNode;
                             var scriptNode = new TreeNode("JavaScript") { Tag = page.JavaScript };
                             page.JavaScript.Node = scriptNode;
                             var styleNode = new TreeNode("Style") { Tag = page.Style };
                             page.Style.Node = styleNode;
 
+                            node.Nodes.Add(copyNode);
                             node.Nodes.Add(scriptNode);
                             node.Nodes.Add(styleNode);
                         }
@@ -139,11 +142,14 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
                         node = new TreeNode(page.Language) { Tag = item };
 
+                        var copyNode = new TreeNode("Content") { Tag = page.Copy };
+                        page.Copy.Node = copyNode;
                         var scriptNode = new TreeNode("JavaScript") { Tag = page.JavaScript };
                         page.JavaScript.Node = scriptNode;
                         var styleNode = new TreeNode("Style") { Tag = page.Style };
                         page.Style.Node = styleNode;
 
+                        node.Nodes.Add(copyNode);
                         node.Nodes.Add(scriptNode);
                         node.Nodes.Add(styleNode);
 
@@ -485,18 +491,21 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
         private void Item_UpdateRequired(object sender, EventArgs e)
         {
-            var pendingChangesItems = portalItems.Where(i => i.HasPendingChanges).ToList();
-            if (pendingChangesItems.Any())
+            Invoke(new Action(() =>
             {
-                lblPendingDetails.Text = string.Format(lblPendingDetails.Tag.ToString(), pendingChangesItems.Count,
-                    pendingChangesItems.Count < 2 ? "" : "s",
-                    pendingChangesItems.Select(p => p.WebsiteReference.Id).Distinct().Count() < 2 ? "" : "s");
-                pnlPendingChanges.Visible = true;
-            }
-            else
-            {
-                pnlPendingChanges.Visible = false;
-            }
+                var pendingChangesItems = portalItems.Where(i => i.HasPendingChanges).ToList();
+                if (pendingChangesItems.Any())
+                {
+                    lblPendingDetails.Text = string.Format(lblPendingDetails.Tag.ToString(), pendingChangesItems.Count,
+                        pendingChangesItems.Count < 2 ? "" : "s",
+                        pendingChangesItems.Select(p => p.WebsiteReference.Id).Distinct().Count() < 2 ? "" : "s");
+                    pnlPendingChanges.Visible = true;
+                }
+                else
+                {
+                    pnlPendingChanges.Visible = false;
+                }
+            }));
         }
 
         private void JavaScript_StateChanged(object sender, EventArgs e)
