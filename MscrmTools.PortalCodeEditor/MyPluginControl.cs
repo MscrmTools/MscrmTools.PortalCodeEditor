@@ -150,7 +150,6 @@ namespace MscrmTools.PortalCodeEditor
                 Work = (bw, e) =>
                 {
                     LoadPortalItems(bw, isLegacyPortal);
-
                 },
                 ProgressChanged = e =>
                 {
@@ -167,46 +166,14 @@ namespace MscrmTools.PortalCodeEditor
             });
         }
 
-        #region Load Portal Items helper methods 
-        /// <summary>
-        /// Helper method for loading the portal items
-        /// </summary>
-        /// <param name="bw"></param>
-        private void LoadPortalItems(BackgroundWorker bw, bool isLegacyPortal) {
-
-            portalItems = new List<EditablePortalItem>();
-            bw.ReportProgress(0, "Loading Web pages...");
-            portalItems.AddRange(WebPage.GetItems(Service));
-            bw.ReportProgress(0, "Loading Entity forms...");
-            portalItems.AddRange(EntityForm.GetItems(Service, ref isLegacyPortal));
-            bw.ReportProgress(0, "Loading Entity lists...");
-            portalItems.AddRange(EntityList.GetItems(Service, ref isLegacyPortal));
-            bw.ReportProgress(0, "Loading Web templates...");
-            portalItems.AddRange(WebTemplate.GetItems(Service, ref isLegacyPortal));
-            bw.ReportProgress(0, "Loading Web files...");
-            portalItems.AddRange(WebFile.GetItems(Service));
-            bw.ReportProgress(0, "Loading Web form steps...");
-            portalItems.AddRange(WebFormStep.GetItems(Service));
-            bw.ReportProgress(0, "Loading Content Snippets...");
-            portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
-
-
-            if (!isLegacyPortal)
-            {
-                bw.ReportProgress(0, "Loading Portal languages...");
-                ctvf.Languages = Service.RetrieveMultiple(new QueryExpression("adx_websitelanguage")
-                {
-                    ColumnSet = new ColumnSet(true)
-                }).Entities.ToList();
-            }
-        }
+        #region Load Portal Items helper methods
 
         /// <summary>
         /// Helper method to handle the errors returned when loading portal items
         /// </summary>
         /// <param name="e"></param>
-        private void HandlLoadPortalItemErrors(RunWorkerCompletedEventArgs e) {
-
+        private void HandlLoadPortalItemErrors(RunWorkerCompletedEventArgs e)
+        {
             if (e.Error != null)
             {
                 if (((FaultException<OrganizationServiceFault>)e.Error).Detail.ErrorCode == -2147217149)
@@ -225,7 +192,40 @@ namespace MscrmTools.PortalCodeEditor
                 }
             }
         }
-        #endregion
+
+        /// <summary>
+        /// Helper method for loading the portal items
+        /// </summary>
+        /// <param name="bw"></param>
+        private void LoadPortalItems(BackgroundWorker bw, bool isLegacyPortal)
+        {
+            portalItems = new List<EditablePortalItem>();
+            bw.ReportProgress(0, "Loading Web pages...");
+            portalItems.AddRange(WebPage.GetItems(Service));
+            bw.ReportProgress(0, "Loading Entity forms...");
+            portalItems.AddRange(EntityForm.GetItems(Service, ref isLegacyPortal));
+            bw.ReportProgress(0, "Loading Entity lists...");
+            portalItems.AddRange(EntityList.GetItems(Service, ref isLegacyPortal));
+            bw.ReportProgress(0, "Loading Web templates...");
+            portalItems.AddRange(WebTemplate.GetItems(Service, ref isLegacyPortal));
+            bw.ReportProgress(0, "Loading Web files...");
+            portalItems.AddRange(WebFile.GetItems(Service));
+            bw.ReportProgress(0, "Loading Web form steps...");
+            portalItems.AddRange(WebFormStep.GetItems(Service));
+            bw.ReportProgress(0, "Loading Content Snippets...");
+            portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
+
+            if (!isLegacyPortal)
+            {
+                bw.ReportProgress(0, "Loading Portal languages...");
+                ctvf.Languages = Service.RetrieveMultiple(new QueryExpression("adx_websitelanguage")
+                {
+                    ColumnSet = new ColumnSet(true)
+                }).Entities.ToList();
+            }
+        }
+
+        #endregion Load Portal Items helper methods
 
         private void tsbCredits_Click(object sender, EventArgs e)
         {
@@ -460,60 +460,23 @@ namespace MscrmTools.PortalCodeEditor
         #endregion IShortcutReceiver
 
         #region Export to disk
+
         /// <summary>
-        /// Handle the export click
+        /// Helper method to ensure that the path is combined correctly, removing trailing spaces
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private void tsbExportPortalItems_Click(object sender, EventArgs args)
+        /// <param name="path"></param>
+        /// <param name="newFolder"></param>
+        /// <param name="create"></param>
+        /// <returns></returns>
+        private string AppendToPath(string path, string newFolder, bool create = false)
         {
-            ExecuteMethod(LoadItemsForExport);
-        }
+            path = Path.Combine(path.Trim(), newFolder.Trim());
 
-        /// <summary>
-        /// Helper method to load the items for export in case items already loaded have changes
-        /// </summary>
-        private void LoadItemsForExport() {
-            // pull up the export options dialog for folder, search, etc.
-            var expOptions = new ExportOptions();
-            var result = expOptions.ShowDialog();
-
-            if (result != DialogResult.OK)
+            if (!Directory.Exists(path) && create)
             {
-                return;
+                Directory.CreateDirectory(path);
             }
-
-            // load the portal items and export to disk
-            ctvf.Enabled = false;
-            WorkAsync(new WorkAsyncInfo
-            {
-                Message = "Loading portal items...",
-                Work = (bw, e) =>
-                {
-                    // load all the portal content again, just in case changes have been made
-                    LoadPortalItems(bw, isLegacyPortal);
-                },
-                ProgressChanged = e =>
-                {
-                    SetWorkingMessage(e.UserState.ToString());
-                },
-                PostWorkCallBack = e =>
-                {
-                    // handle any errors returned
-                    this.HandlLoadPortalItemErrors(e);
-
-                    if (e.Error == null)
-                    {
-                        // now that we have the items, export to the selected folder
-                        Export(portalItems, expOptions.ExportFolder, isLegacyPortal,
-                            expOptions.SearchText,
-                            expOptions.SearchContents,
-                            expOptions.ClearFolderBeforeExport);
-                    }
-
-                    ctvf.Enabled = true;
-                }
-            });
+            return path;
         }
 
         /// <summary>
@@ -533,16 +496,16 @@ namespace MscrmTools.PortalCodeEditor
             // preset the filtered list to the current list of items
             var filteredItems = portalItems;
 
-            // search case insensitive
-            searchText = searchText.ToLower();
-
             // if search text has been provided, search the list
             if (searchText != null)
             {
+                // search case insensitive
+                searchText = searchText.ToLower();
+
                 filteredItems = portalItems.Where(i => searchText.Length == 0
-                                                     || i.Name.ToLower().Contains(searchText)
+                                                     || (i.Name?.ToLower().Contains(searchText) ?? false)
                                                      || searchInContent &&
-                                                     i.Items.Any(i2 => i2.Content.ToLower().Contains(searchText)))
+                                                     i.Items.Any(i2 => i2.Content?.ToLower().Contains(searchText) ?? false))
                     .ToList();
             }
 
@@ -551,7 +514,8 @@ namespace MscrmTools.PortalCodeEditor
             if (clearFolder)
             {
                 DirectoryInfo di = new DirectoryInfo(exportFolder);
-                foreach (FileInfo file in di.GetFiles()) {
+                foreach (FileInfo file in di.GetFiles())
+                {
                     file.Delete();
                 }
 
@@ -562,7 +526,7 @@ namespace MscrmTools.PortalCodeEditor
             }
 
             // keep track of the names by type by website that have been exported so we do not overrite content
-            // might be easier to look for file... 
+            // might be easier to look for file...
             var websiteNameList = new Dictionary<Guid, Dictionary<string, Dictionary<Guid, string>>>();
 
             // begin the work!
@@ -578,7 +542,7 @@ namespace MscrmTools.PortalCodeEditor
                 websiteName = EditablePortalItem.EscapeForFileName(websiteName);
                 currentPath = Path.Combine(exportFolder, websiteName);
 
-                // add a new structure to track names for this website 
+                // add a new structure to track names for this website
                 if (!websiteNameList.ContainsKey(websiteReference.Id))
                 {
                     websiteNameList.Add(websiteReference.Id, GetWebSiteNameList());
@@ -625,10 +589,10 @@ namespace MscrmTools.PortalCodeEditor
                         // find the parent page Id to get the name of the folder
                         // TODO - do we want to account for the root page?
                         var parent = portalItems
-                            .Where(w => (w as WebPage)?.Id == page.ParentPageId)
-                            .FirstOrDefault() as WebPage;
+                            .FirstOrDefault(w => (w as WebPage)?.Id == page.ParentPageId) as WebPage;
 
-                        if (parent == null) {
+                        if (parent == null)
+                        {
                             continue;
                         }
                         var name = GetItemUniqueName(nameList[WebPage.NODENAME], parent, page.PartialUrl);
@@ -650,7 +614,6 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, name);
 
                     form.WriteContent(currentPath);
-
                 }
                 else if (item is EntityList list)
                 {
@@ -699,7 +662,6 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, name);
 
                     wfStep.WriteContent(currentPath);
-
                 }
                 else if (item is ContentSnippet snippet)
                 {
@@ -725,18 +687,21 @@ namespace MscrmTools.PortalCodeEditor
         /// <param name="newItem"></param>
         /// <param name="appendTo"></param>
         /// <returns></returns>
-        private string GetItemUniqueName(Dictionary<Guid, string> nameList, EditablePortalItem newItem, string appendTo = null) {
+        private string GetItemUniqueName(Dictionary<Guid, string> nameList, EditablePortalItem newItem, string appendTo = null)
+        {
             // if the ID is already in the list, just return it
             if (nameList.ContainsKey(newItem.Id))
             {
                 return nameList[newItem.Id];
             }
-            else {
-                // see if the name already exists in the list for this section 
+            else
+            {
+                // see if the name already exists in the list for this section
                 var newName = newItem.EscapeName();
 
                 // see if something additional has been added to ensure uniqueness (like partial URL)
-                if (appendTo != null) {
+                if (appendTo != null)
+                {
                     newName += $" - {appendTo}";
                 }
                 newName = EditablePortalItem.EscapeForFileName(newName);
@@ -759,7 +724,7 @@ namespace MscrmTools.PortalCodeEditor
             var nameList = new Dictionary<string, Dictionary<Guid, string>>();
 
             // build out a container for the names so that we don't have clashes of folders or files.
-            // add a dictionary per section.  duplicate names are ok across sectins: web page can be same as web template 
+            // add a dictionary per section.  duplicate names are ok across sectins: web page can be same as web template
             nameList.Add(WebPage.NODENAME, new Dictionary<Guid, string>());
             nameList.Add(ContentSnippet.NODENAME, new Dictionary<Guid, string>());
             nameList.Add(EntityForm.NODENAME, new Dictionary<Guid, string>());
@@ -772,21 +737,62 @@ namespace MscrmTools.PortalCodeEditor
         }
 
         /// <summary>
-        /// Helper method to ensure that the path is combined correctly, removing trailing spaces
+        /// Helper method to load the items for export in case items already loaded have changes
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="newFolder"></param>
-        /// <param name="create"></param>
-        /// <returns></returns>
-        private string AppendToPath(string path, string newFolder, bool create = false)
+        private void LoadItemsForExport()
         {
-            path = Path.Combine(path.Trim(), newFolder.Trim());
+            // pull up the export options dialog for folder, search, etc.
+            var expOptions = new ExportOptions();
+            var result = expOptions.ShowDialog();
 
-            if (!Directory.Exists(path) && create) {
-                Directory.CreateDirectory(path);
+            if (result != DialogResult.OK)
+            {
+                return;
             }
-            return path;
+
+            // load the portal items and export to disk
+            ctvf.Enabled = false;
+            WorkAsync(new WorkAsyncInfo
+            {
+                Message = "Loading portal items...",
+                Work = (bw, e) =>
+                {
+                    // load all the portal content again, just in case changes have been made
+                    LoadPortalItems(bw, isLegacyPortal);
+                },
+                ProgressChanged = e =>
+                {
+                    SetWorkingMessage(e.UserState.ToString());
+                },
+                PostWorkCallBack = e =>
+                {
+                    // handle any errors returned
+                    this.HandlLoadPortalItemErrors(e);
+
+                    if (e.Error == null)
+                    {
+                        // now that we have the items, export to the selected folder
+                        Export(portalItems, expOptions.ExportFolder, isLegacyPortal,
+                            expOptions.SearchText,
+                            expOptions.SearchContents,
+                            expOptions.ClearFolderBeforeExport);
+                    }
+
+                    ctvf.Enabled = true;
+                }
+            });
         }
-        #endregion
+
+        /// <summary>
+        /// Handle the export click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void tsbExportPortalItems_Click(object sender, EventArgs args)
+        {
+            ExecuteMethod(LoadItemsForExport);
+        }
+
+        #endregion Export to disk
     }
 }
