@@ -1,21 +1,22 @@
-﻿using System;
+﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class WebFile : EditablePortalItem
     {
         #region Constants
+
         public const string NODEKEY = "WebFile";
         public const string NODENAME = "Web Files";
-        #endregion
+
+        #endregion Constants
 
         #region Variables
 
@@ -95,6 +96,18 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 .ToList();
         }
 
+        public override string RefreshContent(CodeItem item, IOrganizationService service)
+        {
+            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
+               new ColumnSet("documentbody"));
+
+            innerRecord.RowVersion = record.RowVersion;
+
+            var data = Encoding.UTF8.GetString(Convert.FromBase64String(record.GetAttributeValue<string>("documentbody")));
+
+            return data;
+        }
+
         public override void Update(IOrganizationService service, bool forceUpdate = false)
         {
             innerRecord["documentbody"] = Code.EncodedContent;
@@ -105,6 +118,15 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 RowVersion = innerRecord.RowVersion
             };
             recordToUpdate["documentbody"] = innerRecord["documentbody"];
+
+            if (Code.Type == CodeItemType.Style)
+            {
+                recordToUpdate["mimetype"] = "text/css";
+            }
+            else if (Code.Type == CodeItemType.JavaScript)
+            {
+                recordToUpdate["mimetype"] = "application/javascript";
+            }
 
             var updateRequest = new UpdateRequest
             {
@@ -119,18 +141,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             Code.State = CodeItemState.None;
             HasPendingChanges = false;
-        }
-
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
-        {
-            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-               new ColumnSet("documentbody"));
-
-            innerRecord.RowVersion = record.RowVersion;
-
-            var data = Encoding.UTF8.GetString(Convert.FromBase64String(record.GetAttributeValue<string>("documentbody")));
-
-            return data;
         }
 
         /// <summary>
