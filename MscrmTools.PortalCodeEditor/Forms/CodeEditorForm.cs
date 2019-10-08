@@ -41,40 +41,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             content = item.Content;
             this.item = item;
-            item.StateChanged += (sender, e) =>
-            {
-                Invoke(new Action(() =>
-                {
-                    var ci = (CodeItem)sender;
-                    tslName.Text = $"{ci.Parent.Name} {(ci.Parent is WebPage ? (ci.Type == CodeItemType.JavaScript ? "(JavaScript)" : ci.Type == CodeItemType.Style ? "(Style)" : "(Content)") : "")}";
-                    switch (ci.State)
-                    {
-                        case CodeItemState.None:
-                            TabText = ci.Parent.Name;
-                            tslName.ForeColor = Color.Black;
-                            tsmiSave.Enabled = false;
-                            tsmiUpdate.Enabled = false;
-                            break;
-
-                        case CodeItemState.Draft:
-                            TabText = $"{ci.Parent.Name}*";
-                            tslName.ForeColor = Color.Red;
-                            tslName.Text += " - not saved";
-
-                            tsmiSave.Enabled = true;
-                            tsmiUpdate.Enabled = false;
-                            break;
-
-                        case CodeItemState.Saved:
-                            TabText = $"{ci.Parent.Name}!";
-                            tslName.ForeColor = Color.Blue;
-                            tslName.Text += " - not updated";
-                            tsmiSave.Enabled = false;
-                            tsmiUpdate.Enabled = true;
-                            break;
-                    }
-                }));
-            };
+            item.StateChanged += ItemStateChanged;
             this.service = service;
             this.mySettings = mySettings;
             this.mySettings.OnColorChanged += (sender, e) =>
@@ -207,6 +174,41 @@ namespace MscrmTools.PortalCodeEditor.Forms
             findReplace.KeyPressed += MyFindReplace_KeyPressed;
 
             ManageCmdKeys();
+        }
+
+        private void ItemStateChanged(object sender, EventArgs e)
+        {
+            Invoke(new Action(() =>
+            {
+                var ci = (CodeItem)sender;
+                tslName.Text = $"{ci.Parent.Name} {(ci.Parent is WebPage ? (ci.Type == CodeItemType.JavaScript ? "(JavaScript)" : ci.Type == CodeItemType.Style ? "(Style)" : "(Content)") : "")}";
+                switch (ci.State)
+                {
+                    case CodeItemState.None:
+                        TabText = ci.Parent.Name;
+                        tslName.ForeColor = Color.Black;
+                        tsmiSave.Enabled = false;
+                        tsmiUpdate.Enabled = false;
+                        break;
+
+                    case CodeItemState.Draft:
+                        TabText = $"{ci.Parent.Name}*";
+                        tslName.ForeColor = Color.Red;
+                        tslName.Text += " - not saved";
+
+                        tsmiSave.Enabled = true;
+                        tsmiUpdate.Enabled = false;
+                        break;
+
+                    case CodeItemState.Saved:
+                        TabText = $"{ci.Parent.Name}!";
+                        tslName.ForeColor = Color.Blue;
+                        tslName.Text += " - not updated";
+                        tsmiSave.Enabled = false;
+                        tsmiUpdate.Enabled = true;
+                        break;
+                }
+            }));
         }
 
         #endregion Constructor
@@ -648,6 +650,8 @@ namespace MscrmTools.PortalCodeEditor.Forms
                     item.State = CodeItemState.None;
                 }
             }
+
+            item.StateChanged -= ItemStateChanged;
         }
 
         private void tsCodeContent_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
