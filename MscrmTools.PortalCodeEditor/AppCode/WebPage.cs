@@ -41,7 +41,8 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Language = record.GetAttributeValue<EntityReference>("adx_webpagelanguageid")?.Name ?? "no language";
             Name = $"{record.GetAttributeValue<string>("adx_name")}{(IsRoot || isLegacyPortal ? "" : " (" + Language + ")")}";
 
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid");
+            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??
+                               new EntityReference("adx_website", Guid.Empty);
 
             innerRecord = record;
 

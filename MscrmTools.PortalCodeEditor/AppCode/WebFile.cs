@@ -33,7 +33,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Id = record.Id;
             Code = new CodeItem(record.GetAttributeValue<string>("documentbody"), ext == "js" ? CodeItemType.JavaScript : CodeItemType.Style, true, this);
             Name = record.GetAttributeValue<AliasedValue>("webfile.adx_name").Value.ToString();
-            WebsiteReference = (EntityReference)record.GetAttributeValue<AliasedValue>("webfile.adx_websiteid").Value;
+            WebsiteReference = (EntityReference)record.GetAttributeValue<AliasedValue>("webfile.adx_websiteid")?.Value ?? new EntityReference("adx_website", Guid.Empty);
 
             innerRecord = record;
 

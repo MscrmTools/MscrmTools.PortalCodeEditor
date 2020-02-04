@@ -1,20 +1,23 @@
-﻿using System;
+﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class WebFormStep : EditablePortalItem
     {
         #region Constants
+
         public const string NODEKEY = "WebForm";
         public const string NODENAME = "Web Forms";
-        #endregion
+
+        #endregion Constants
+
         #region Variables
 
         private readonly Entity innerRecord;
@@ -30,15 +33,8 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Name = record.GetAttributeValue<string>("adx_name");
             WebFormReference = record.GetAttributeValue<EntityReference>("adx_webform");
 
-            var websiteReference = record.GetAliasedValue<EntityReference>("webform", "adx_websiteid");
-            if (websiteReference != null)
-            {
-                WebsiteReference = websiteReference;
-            }
-            else
-            {
-                WebsiteReference = new EntityReference("adx_websiteid", Guid.Empty);
-            }
+            WebsiteReference = record.GetAliasedValue<EntityReference>("webform", "adx_websiteid") ??
+                                   new EntityReference("adx_website", Guid.Empty);
 
             innerRecord = record;
             Items.Add(JavaScript);
@@ -96,6 +92,16 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             }
         }
 
+        public override string RefreshContent(CodeItem item, IOrganizationService service)
+        {
+            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
+                new ColumnSet("adx_registerstartupscript"));
+
+            innerRecord.RowVersion = record.RowVersion;
+
+            return record.GetAttributeValue<string>("adx_registerstartupscript");
+        }
+
         public override void Update(IOrganizationService service, bool forceUpdate = false)
         {
             innerRecord["adx_registerstartupscript"] = JavaScript.Content;
@@ -115,16 +121,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             HasPendingChanges = false;
         }
 
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
-        {
-            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-                new ColumnSet("adx_registerstartupscript"));
-
-            innerRecord.RowVersion = record.RowVersion;
-
-            return record.GetAttributeValue<string>("adx_registerstartupscript");
-        }
-
         /// <summary>
         /// Write the contents of the code object to disk
         /// </summary>
@@ -135,6 +131,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             JavaScript?.WriteCodeItem(filePath);
         }
+
         #endregion Methods
     }
 }
