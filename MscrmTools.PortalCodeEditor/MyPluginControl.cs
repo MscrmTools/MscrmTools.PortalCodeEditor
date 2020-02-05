@@ -214,6 +214,11 @@ namespace MscrmTools.PortalCodeEditor
             portalItems.AddRange(WebFormStep.GetItems(Service));
             bw.ReportProgress(0, "Loading Content Snippets...");
             portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
+            bw.ReportProgress(0, "Loading Publishing States...");
+            ctvf.PublishingStates = Service.RetrieveMultiple(new QueryExpression("adx_publishingstate")
+            {
+                ColumnSet = new ColumnSet(true)
+            }).Entities.ToList();
 
             if (!isLegacyPortal)
             {

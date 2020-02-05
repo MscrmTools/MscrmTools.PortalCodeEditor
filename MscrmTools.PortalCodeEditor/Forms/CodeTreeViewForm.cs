@@ -41,6 +41,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
         public bool IsLegacyPortal { get; set; }
         public List<Entity> Languages { get; set; }
+        public List<Entity> PublishingStates { get; set; }
         public IOrganizationService Service { get; set; }
 
         public void DisplayCodeItems(List<EditablePortalItem> items, bool isLegacyPortal)
@@ -390,12 +391,29 @@ namespace MscrmTools.PortalCodeEditor.Forms
                         ApplyCounting(node, "WebTemplate");
                     }
                 }
+                else if (tvCodeItems.SelectedNode.Name == "WebFile")
+                {
+                    var dialog = new NewWebfileForm(Service, node.Tag as EntityReference, PublishingStates);
+                    if (dialog.ShowDialog(this) == DialogResult.OK)
+                    {
+                        var newWebFile = new WebFile(dialog.Annotation);
+                        newWebFile.Code.StateChanged += JavaScript_StateChanged;
+
+                        var newNode = new TreeNode(newWebFile.Name) { Tag = newWebFile.Code };
+                        newWebFile.Code.Node = newNode;
+
+                        tvCodeItems.SelectedNode.Nodes.Add(newNode);
+                        tvCodeItems.Sort();
+
+                        ApplyCounting(node, "WebFile");
+                    }
+                }
                 else if (tvCodeItems.SelectedNode.Name == "Html")
                 {
                     var dialog = new NewContentSnippetForm(756150001, Service, node.Tag as EntityReference, Languages);
                     if (dialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        var newContentSnippet = new ContentSnippet(dialog.Template);
+                        var newContentSnippet = new ContentSnippet(dialog.Snippet);
                         newContentSnippet.Code.StateChanged += JavaScript_StateChanged;
 
                         var newNode = new TreeNode(newContentSnippet.Name) { Tag = newContentSnippet.Code };
@@ -412,7 +430,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
                     var dialog = new NewContentSnippetForm(756150000, Service, node.Tag as EntityReference, Languages);
                     if (dialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        var newContentSnippet = new ContentSnippet(dialog.Template);
+                        var newContentSnippet = new ContentSnippet(dialog.Snippet);
                         newContentSnippet.Code.StateChanged += JavaScript_StateChanged;
 
                         var newNode = new TreeNode(newContentSnippet.Name) { Tag = newContentSnippet.Code };
@@ -430,11 +448,11 @@ namespace MscrmTools.PortalCodeEditor.Forms
         private void cmsTreeview_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
             var selectedNode = tvCodeItems.SelectedNode;
-            tsmiUpdate.Visible = selectedNode.Name != "WebTemplate" && selectedNode.Name != "Html" && selectedNode.Name != "Text";
-            tsmiRefreshFromPortal.Visible = selectedNode.Name != "WebTemplate" && selectedNode.Name != "Html" && selectedNode.Name != "Text";
-            tsmiCreateNewItem.Visible = selectedNode.Name == "WebTemplate" || selectedNode.Name == "Html" || selectedNode.Name == "Text";
+            tsmiUpdate.Visible = selectedNode.Name != "WebTemplate" && selectedNode.Name != "WebFile" && selectedNode.Name != "Html" && selectedNode.Name != "Text";
+            tsmiRefreshFromPortal.Visible = selectedNode.Name != "WebTemplate" && selectedNode.Name != "WebFile" && selectedNode.Name != "Html" && selectedNode.Name != "Text";
+            tsmiCreateNewItem.Visible = selectedNode.Name == "WebTemplate" || selectedNode.Name == "WebFile" || selectedNode.Name == "Html" || selectedNode.Name == "Text";
 
-            tsmiCreateNewItem.Text = string.Format(tsmiCreateNewItem.Tag.ToString(), selectedNode.Name == "WebTemplate" ? "Web template" : "Content snippet");
+            tsmiCreateNewItem.Text = string.Format(tsmiCreateNewItem.Tag.ToString(), selectedNode.Name == "WebTemplate" ? "Web template" : selectedNode.Name == "WebFile" ? "Web file" : "Content snippet");
         }
 
         private void CountContentSnippet(TreeNode parentNode)
@@ -554,7 +572,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             var targetNode = tvCodeItems.GetNodeAt(e.X, e.Y);
 
-            if (targetNode?.Tag == null && targetNode?.Name != "WebTemplate" && targetNode?.Name != "Html" && targetNode?.Name != "Text")
+            if (targetNode?.Tag == null && targetNode?.Name != "WebTemplate" && targetNode?.Name != "WebFile" && targetNode?.Name != "Html" && targetNode?.Name != "Text")
             {
                 return;
             }

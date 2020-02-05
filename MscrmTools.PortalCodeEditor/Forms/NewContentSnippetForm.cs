@@ -37,7 +37,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
             }
         }
 
-        public Entity Template { get; private set; }
+        public Entity Snippet { get; private set; }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
@@ -63,7 +63,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             try
             {
-                Template = new Entity("adx_contentsnippet")
+                Snippet = new Entity("adx_contentsnippet")
                 {
                     Attributes =
                     {
@@ -75,19 +75,19 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
                 if (cbbLanguages.SelectedItem != null)
                 {
-                    Template["adx_contentsnippetlanguageid"] = languages.First(l =>
+                    Snippet["adx_contentsnippetlanguageid"] = languages.First(l =>
                             l.GetAttributeValue<string>("adx_name") == cbbLanguages.SelectedItem.ToString())
                         .ToEntityReference();
-                    Template["adx_display_name"] = txtDisplayName.Text;
+                    Snippet["adx_display_name"] = txtDisplayName.Text;
                 }
 
-                Template.Id = service.Create(Template);
+                Snippet.Id = service.Create(Snippet);
 
                 Close();
             }
             catch (Exception error)
             {
-                MessageBox.Show(this, "An error ocurred while creating the web template: " + error.Message, "Error",
+                MessageBox.Show(this, "An error ocurred while creating the content snippet: " + error.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 btnCancel.Enabled = true;
