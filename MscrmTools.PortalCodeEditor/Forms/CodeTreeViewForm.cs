@@ -58,9 +58,9 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             var searchText = txtSearch.Text.ToLower();
             var filteredItems = items.Where(i => searchText.Length == 0
-                                                 || i.Name.ToLower().Contains(searchText)
+                                                 || (i.Name?.ToLower().Contains(searchText) ?? false)
                                                  || chkSearchInContent.Checked &&
-                                                 i.Items.Any(i2 => i2.Content.ToLower().Contains(searchText)))
+                                                 i.Items.Any(i2 => i2.Content?.ToLower().Contains(searchText) ?? false))
                 .ToList();
 
             if (!filteredItems.Any() && searchText.Length > 0)
@@ -596,6 +596,8 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
         private void DisplayFiltered()
         {
+            Thread.Sleep(500);
+
             tvCodeItems.Invoke(new Action(() =>
             {
                 tvCodeItems.Nodes.Clear();
