@@ -579,6 +579,7 @@ namespace MscrmTools.PortalCodeEditor
                     if (page.IsRoot || page.ParentPageId == Guid.Empty)
                     {
                         var name = GetItemUniqueName(nameList[WebPage.NODENAME], page, page.PartialUrl);
+                        if (name == null) continue;
 
                         // new folder for web page
                         currentPath = AppendToPath(currentPath, name);
@@ -601,6 +602,7 @@ namespace MscrmTools.PortalCodeEditor
                             continue;
                         }
                         var name = GetItemUniqueName(nameList[WebPage.NODENAME], parent, page.PartialUrl);
+                        if (name == null) continue;
 
                         // new path for website and the language
                         currentPath = AppendToPath(currentPath, name);
@@ -613,6 +615,7 @@ namespace MscrmTools.PortalCodeEditor
                 else if (item is EntityForm form)
                 {
                     var name = GetItemUniqueName(nameList[EntityForm.NODENAME], form);
+                    if (name == null) continue;
 
                     // new entity form, append to the current path
                     currentPath = AppendToPath(currentPath, EntityForm.NODENAME);
@@ -623,6 +626,7 @@ namespace MscrmTools.PortalCodeEditor
                 else if (item is EntityList list)
                 {
                     var name = GetItemUniqueName(nameList[EntityList.NODENAME], list);
+                    if (name == null) continue;
 
                     // new entity list, append to the current path
                     currentPath = AppendToPath(currentPath, EntityList.NODENAME);
@@ -633,6 +637,7 @@ namespace MscrmTools.PortalCodeEditor
                 else if (item is WebTemplate template)
                 {
                     var name = GetItemUniqueName(nameList[WebTemplate.NODENAME], template);
+                    if (name == null) continue;
 
                     // new Web Template, append to the current path
                     currentPath = AppendToPath(currentPath, WebTemplate.NODENAME);
@@ -664,6 +669,8 @@ namespace MscrmTools.PortalCodeEditor
                     }
                     // now down to the web form step name for a folder and then the js
                     var name = wfStep.EscapeName();
+                    if (name == null) continue;
+
                     currentPath = AppendToPath(currentPath, name);
 
                     wfStep.WriteContent(currentPath);
@@ -671,6 +678,7 @@ namespace MscrmTools.PortalCodeEditor
                 else if (item is ContentSnippet snippet)
                 {
                     var name = GetItemUniqueName(nameList[ContentSnippet.NODENAME], snippet);
+                    if (name == null) continue;
 
                     // new content snippet.  put all in the same folder, appending extension
                     currentPath = AppendToPath(currentPath, ContentSnippet.NODENAME);
@@ -710,6 +718,7 @@ namespace MscrmTools.PortalCodeEditor
                     newName += $" - {appendTo}";
                 }
                 newName = EditablePortalItem.EscapeForFileName(newName);
+                if (newName == null) return null;
 
                 var origName = newName;
                 var counter = 0;
