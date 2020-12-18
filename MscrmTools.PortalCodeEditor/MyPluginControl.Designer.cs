@@ -42,7 +42,7 @@ namespace MscrmTools.PortalCodeEditor
             this.cmsTab = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.closeThisTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeAllTabsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.colseAllButThisTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeAllButThisTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dpMain = new WeifenLuo.WinFormsUI.Docking.DockPanel();
             this.tsMainMenu.SuspendLayout();
             this.cmsTab.SuspendLayout();
@@ -141,12 +141,12 @@ namespace MscrmTools.PortalCodeEditor
             this.closeAllTabsToolStripMenuItem.Text = "Close all tabs";
             this.closeAllTabsToolStripMenuItem.Click += new System.EventHandler(this.closeAllTabsToolStripMenuItem_Click);
             // 
-            // colseAllButThisTabToolStripMenuItem
+            // closeAllButThisTabToolStripMenuItem
             // 
-            this.colseAllButThisTabToolStripMenuItem.Name = "colseAllButThisTabToolStripMenuItem";
-            this.colseAllButThisTabToolStripMenuItem.Size = new System.Drawing.Size(275, 34);
-            this.colseAllButThisTabToolStripMenuItem.Text = "Colse all but this tab";
-            this.colseAllButThisTabToolStripMenuItem.Click += new System.EventHandler(this.closeAllButThisTabToolStripMenuItem_Click);
+            this.closeAllButThisTabToolStripMenuItem.Name = "closeAllButThisTabToolStripMenuItem";
+            this.closeAllButThisTabToolStripMenuItem.Size = new System.Drawing.Size(275, 34);
+            this.closeAllButThisTabToolStripMenuItem.Text = "Close all but this tab";
+            this.closeAllButThisTabToolStripMenuItem.Click += new System.EventHandler(this.closeAllButThisTabToolStripMenuItem_Click);
             // 
             // dpMain
             // 
@@ -185,7 +185,7 @@ namespace MscrmTools.PortalCodeEditor
         private System.Windows.Forms.ContextMenuStrip cmsTab;
         private System.Windows.Forms.ToolStripMenuItem closeThisTabToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeAllTabsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem colseAllButThisTabToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeAllButThisTabToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton tsbSettings;
         private WeifenLuo.WinFormsUI.Docking.DockPanel dpMain;
