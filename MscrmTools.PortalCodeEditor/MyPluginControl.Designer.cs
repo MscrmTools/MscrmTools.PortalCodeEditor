@@ -123,7 +123,7 @@ namespace MscrmTools.PortalCodeEditor
             this.cmsTab.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.closeThisTabToolStripMenuItem,
             this.closeAllTabsToolStripMenuItem,
-            this.colseAllButThisTabToolStripMenuItem});
+            this.closeAllButThisTabToolStripMenuItem});
             this.cmsTab.Name = "cmsTab";
             this.cmsTab.Size = new System.Drawing.Size(276, 106);
             // 
