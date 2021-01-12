@@ -175,22 +175,7 @@
     <Compile Include="AppCode\WebTemplate.cs" />
     <Compile Include="AppCode\EntityForm.cs" />
     <Compile Include="AppCode\WebPage.cs" />
-    <Compile Include="Controls\CodeEditorScintilla.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\CodeEditorScintilla.Designer.cs">
-      <DependentUpon>CodeEditorScintilla.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\CodeTreeView.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\CodeTreeView.Designer.cs">
-      <DependentUpon>CodeTreeView.cs</DependentUpon>
-    </Compile>
     <Compile Include="AppCode\EventArgs\ContextMenuRequestedEventArgs.cs" />
-    <Compile Include="Controls\CustomTabControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="AppCode\EventArgs\PortalItemSelectedEventArgs.cs" />
     <Compile Include="AppCode\EventArgs\UpdatePendingChangesEventArgs.cs" />
     <Compile Include="Forms\CharacterRange.cs" />
@@ -276,12 +261,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Controls\CodeEditorScintilla.resx">
-      <DependentUpon>CodeEditorScintilla.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\CodeTreeView.resx">
-      <DependentUpon>CodeTreeView.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\CodeEditorForm.resx">
       <DependentUpon>CodeEditorForm.cs</DependentUpon>
     </EmbeddedResource>
