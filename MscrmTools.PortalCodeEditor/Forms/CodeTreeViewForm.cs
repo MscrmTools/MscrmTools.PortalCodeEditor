@@ -57,10 +57,11 @@ namespace MscrmTools.PortalCodeEditor.Forms
             }
 
             var searchText = txtSearch.Text.ToLower();
-            var filteredItems = items.Where(i => searchText.Length == 0
-                                                 || (i.Name?.ToLower().Contains(searchText) ?? false)
+            var filteredItems = items.Where(i => (searchText.Length == 0
+                                                 || i.Name.ToLower().Contains(searchText)
                                                  || chkSearchInContent.Checked &&
-                                                 i.Items.Any(i2 => i2.Content?.ToLower().Contains(searchText) ?? false))
+                                                 i.Items.Any(i2 => i2.Content.ToLower().Contains(searchText)))
+                                                 && (!chkOnlyItemsWithCode.Checked || chkOnlyItemsWithCode.Checked && i.Items.Any(i2 => i2.Content.Length > 0)))
                 .ToList();
 
             if (!filteredItems.Any() && searchText.Length > 0)
@@ -331,6 +332,11 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
                 parentNode.Nodes[nodeName].Text = $"{trimedName} ({parentNode.Nodes[nodeName].Nodes.Count})";
             }
+        }
+
+        private void chkOnlyItemsWithCode_CheckedChanged(object sender, EventArgs e)
+        {
+            DisplayCodeItems(portalItems, IsLegacyPortal);
         }
 
         private void chkSelectAll_CheckedChanged(object sender, EventArgs e)
