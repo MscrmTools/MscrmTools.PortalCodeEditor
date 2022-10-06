@@ -58,10 +58,10 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             var searchText = txtSearch.Text.ToLower();
             var filteredItems = items.Where(i => (searchText.Length == 0
-                                                 || i.Name.ToLower().Contains(searchText)
+                                                 || (i.Name?.ToLower().Contains(searchText) ?? false)
                                                  || chkSearchInContent.Checked &&
-                                                 i.Items.Any(i2 => i2.Content.ToLower().Contains(searchText)))
-                                                 && (!chkOnlyItemsWithCode.Checked || chkOnlyItemsWithCode.Checked && i.Items.Any(i2 => i2.Content.Length > 0)))
+                                                 i.Items.Any(i2 => i2.Content?.ToLower().Contains(searchText) ?? false))
+                                                 && (!chkOnlyItemsWithCode.Checked || chkOnlyItemsWithCode.Checked && i.Items.Any(i2 => i2.Content?.Length > 0)))
                 .ToList();
 
             if (!filteredItems.Any() && searchText.Length > 0)
