@@ -46,6 +46,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             innerRecord = record;
 
+            Items.Add(Copy);
             Items.Add(JavaScript);
             Items.Add(Style);
         }
