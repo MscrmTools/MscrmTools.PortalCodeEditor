@@ -27,9 +27,20 @@ namespace MscrmTools.PortalCodeEditor.Forms
             Close();
         }
 
+        private void btnLiquidObject_Click(object sender, EventArgs e)
+        {
+            PickColor(pnlLiquidObject);
+        }
+
+        private void btnLiquidTag_Click(object sender, EventArgs e)
+        {
+            PickColor(pnlLiquidTag);
+        }
+
         private void btnValidate_Click(object sender, EventArgs e)
         {
             mySettings.ForceUpdate = chkForceUpdate.Checked;
+            mySettings.UseEnhancedDataModel = chkUseEnhancedDataModel.Checked;
             mySettings.ObfuscateJavascript = chkObfuscateJavaScript.Checked;
             mySettings.RemoveCssComments = chkStyleRemoveComments.Checked;
             mySettings.LiquidTagColor = ColorTranslator.ToHtml(pnlLiquidTag.BackColor);
@@ -43,16 +54,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
             chkForceUpdate.Checked = mySettings.ForceUpdate;
             chkObfuscateJavaScript.Checked = mySettings.ObfuscateJavascript;
             chkStyleRemoveComments.Checked = mySettings.RemoveCssComments;
-        }
-
-        private void btnLiquidTag_Click(object sender, EventArgs e)
-        {
-            PickColor(pnlLiquidTag);
-        }
-
-        private void btnLiquidObject_Click(object sender, EventArgs e)
-        {
-            PickColor(pnlLiquidObject);
+            chkUseEnhancedDataModel.Checked = mySettings.UseEnhancedDataModel;
         }
 
         private void PickColor(Panel sourcePanel)

@@ -145,9 +145,9 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public void Refresh(IOrganizationService service)
+        public void Refresh(IOrganizationService service, bool useEnhancedModel)
         {
-            content = Parent.RefreshContent(this, service);
+            content = Parent.RefreshContent(this, service, useEnhancedModel);
             State = CodeItemState.None;
         }
 
@@ -178,13 +178,15 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 {
                     Directory.CreateDirectory(rootpath);
                 }
-                else {
+                else
+                {
                     // make sure file name is unique
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
                     var ext = Path.GetExtension(filePath);
 
                     var counter = 1;
-                    while (File.Exists(filePath)) {
+                    while (File.Exists(filePath))
+                    {
                         filePath = Path.Combine(rootpath, $"{fileName} ({counter++})");
                     }
                 }
@@ -192,6 +194,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 File.WriteAllText(filePath, content);
             }
         }
+
         #endregion Methods
     }
 }

@@ -45,5 +45,6 @@ namespace MscrmTools.PortalCodeEditor
 
         public bool ObfuscateJavascript { get; set; }
         public bool RemoveCssComments { get; set; }
+        public bool UseEnhancedDataModel { get; set; }
     }
 }

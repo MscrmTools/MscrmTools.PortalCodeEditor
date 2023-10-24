@@ -1,21 +1,22 @@
-﻿using System;
+﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
-using System.Windows;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
     public class WebTemplate : EditablePortalItem
     {
         #region Constants
+
         public const string NODEKEY = "WebTemplate";
         public const string NODENAME = "Web Templates";
-        #endregion
+
+        #endregion Constants
 
         #region Variables
 
@@ -25,13 +26,13 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Constructor
 
-        public WebTemplate(Entity record)
+        public WebTemplate(Entity record, bool isEnhancedModel)
         {
             Id = record.Id;
-            Code = new CodeItem(record.GetAttributeValue<string>("adx_source"), CodeItemType.LiquidTemplate, false, this);
-            Name = record.GetAttributeValue<string>("adx_name");
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??
-                               new EntityReference("adx_website", Guid.Empty);
+            Code = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_source"), CodeItemType.LiquidTemplate, false, this);
+            Name = record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name");
+            WebsiteReference = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_websiteid") ??
+                               new EntityReference($"{(isEnhancedModel ? "mspp" : "adx")}_website", Guid.Empty);
 
             innerRecord = record;
 
@@ -48,17 +49,17 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebTemplate> GetItems(IOrganizationService service, ref bool isLegacyPortal)
+        public static List<WebTemplate> GetItems(IOrganizationService service, ref bool isLegacyPortal, bool isEnhancedModel)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_webtemplate")
+                var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webtemplate")
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_source", "adx_websiteid"),
-                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_source", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid"),
+                    Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                 }).Entities;
 
-                return records.Select(record => new WebTemplate(record)).ToList();
+                return records.Select(record => new WebTemplate(record, isEnhancedModel)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
@@ -66,20 +67,30 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 {
                     isLegacyPortal = true;
 
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_webtemplate")
+                    var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webtemplate")
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_source"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_source"),
+                        Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                     }).Entities;
-                    return records.Select(record => new WebTemplate(record)).ToList();
+                    return records.Select(record => new WebTemplate(record, isEnhancedModel)).ToList();
                 }
                 throw;
             }
         }
 
-        public override void Update(IOrganizationService service, bool forceUpdate = false)
+        public override string RefreshContent(CodeItem item, IOrganizationService service, bool isEnhancedModel)
         {
-            innerRecord["adx_source"] = Code.Content;
+            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
+                new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_source"));
+
+            innerRecord.RowVersion = record.RowVersion;
+
+            return record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_source");
+        }
+
+        public override void Update(IOrganizationService service, bool forceUpdate, bool isEnhancedModel)
+        {
+            innerRecord[$"{(isEnhancedModel ? "mspp" : "adx")}_source"] = Code.Content;
 
             var updateRequest = new UpdateRequest
             {
@@ -94,16 +105,6 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
             Code.State = CodeItemState.None;
             HasPendingChanges = false;
-        }
-
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
-        {
-            var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-                new ColumnSet("adx_source"));
-
-            innerRecord.RowVersion = record.RowVersion;
-
-            return record.GetAttributeValue<string>("adx_source");
         }
 
         /// <summary>

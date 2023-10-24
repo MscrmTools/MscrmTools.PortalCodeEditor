@@ -43,10 +43,12 @@ namespace MscrmTools.PortalCodeEditor.Forms
         public List<Entity> Languages { get; set; }
         public List<Entity> PublishingStates { get; set; }
         public IOrganizationService Service { get; set; }
+        public bool UseEnhancedDataModel { get; set; }
 
-        public void DisplayCodeItems(List<EditablePortalItem> items, bool isLegacyPortal)
+        public void DisplayCodeItems(List<EditablePortalItem> items, bool isLegacyPortal, bool useEnhancedDataModel)
         {
             IsLegacyPortal = isLegacyPortal;
+            UseEnhancedDataModel = useEnhancedDataModel;
             portalItems = items;
             tvCodeItems.Nodes.Clear();
             var rootNodes = new Dictionary<Guid, TreeNode>();
@@ -219,10 +221,16 @@ namespace MscrmTools.PortalCodeEditor.Forms
                         rootNodes[file.WebsiteReference.Id].Nodes.Add(typeNode);
                     }
 
-                    file.Code.StateChanged += JavaScript_StateChanged;
-
+                    if (file.Code != null)
+                    {
+                        file.Code.StateChanged += JavaScript_StateChanged;
+                    }
                     var node = new TreeNode(file.Name) { Tag = file.Code };
-                    file.Code.Node = node;
+
+                    if (file.Code != null)
+                    {
+                        file.Code.Node = node;
+                    }
 
                     typeNode.Nodes.Add(node);
                 }
@@ -336,7 +344,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
         private void chkOnlyItemsWithCode_CheckedChanged(object sender, EventArgs e)
         {
-            DisplayCodeItems(portalItems, IsLegacyPortal);
+            DisplayCodeItems(portalItems, IsLegacyPortal, UseEnhancedDataModel);
         }
 
         private void chkSelectAll_CheckedChanged(object sender, EventArgs e)
@@ -382,10 +390,10 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
                 if (tvCodeItems.SelectedNode.Name == "WebTemplate")
                 {
-                    var dialog = new NewWebTemplateForm(Service, node.Tag as EntityReference);
+                    var dialog = new NewWebTemplateForm(Service, node.Tag as EntityReference, UseEnhancedDataModel);
                     if (dialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        var newTemplate = new WebTemplate(dialog.Template);
+                        var newTemplate = new WebTemplate(dialog.Template, UseEnhancedDataModel);
                         newTemplate.Code.StateChanged += JavaScript_StateChanged;
 
                         var newNode = new TreeNode(newTemplate.Name) { Tag = newTemplate.Code };
@@ -399,10 +407,10 @@ namespace MscrmTools.PortalCodeEditor.Forms
                 }
                 else if (tvCodeItems.SelectedNode.Name == "WebFile")
                 {
-                    var dialog = new NewWebfileForm(Service, node.Tag as EntityReference, PublishingStates);
+                    var dialog = new NewWebfileForm(Service, node.Tag as EntityReference, PublishingStates, UseEnhancedDataModel);
                     if (dialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        var newWebFile = new WebFile(dialog.Annotation);
+                        var newWebFile = new WebFile(dialog.Annotation, UseEnhancedDataModel);
                         newWebFile.Code.StateChanged += JavaScript_StateChanged;
 
                         var newNode = new TreeNode(newWebFile.Name) { Tag = newWebFile.Code };
@@ -416,10 +424,10 @@ namespace MscrmTools.PortalCodeEditor.Forms
                 }
                 else if (tvCodeItems.SelectedNode.Name == "Html")
                 {
-                    var dialog = new NewContentSnippetForm(756150001, Service, node.Tag as EntityReference, Languages);
+                    var dialog = new NewContentSnippetForm(756150001, Service, node.Tag as EntityReference, Languages, UseEnhancedDataModel);
                     if (dialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        var newContentSnippet = new ContentSnippet(dialog.Snippet);
+                        var newContentSnippet = new ContentSnippet(dialog.Snippet, UseEnhancedDataModel);
                         newContentSnippet.Code.StateChanged += JavaScript_StateChanged;
 
                         var newNode = new TreeNode(newContentSnippet.Name) { Tag = newContentSnippet.Code };
@@ -433,10 +441,10 @@ namespace MscrmTools.PortalCodeEditor.Forms
                 }
                 else if (tvCodeItems.SelectedNode.Name == "Text")
                 {
-                    var dialog = new NewContentSnippetForm(756150000, Service, node.Tag as EntityReference, Languages);
+                    var dialog = new NewContentSnippetForm(756150000, Service, node.Tag as EntityReference, Languages, UseEnhancedDataModel);
                     if (dialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        var newContentSnippet = new ContentSnippet(dialog.Snippet);
+                        var newContentSnippet = new ContentSnippet(dialog.Snippet, UseEnhancedDataModel);
                         newContentSnippet.Code.StateChanged += JavaScript_StateChanged;
 
                         var newNode = new TreeNode(newContentSnippet.Name) { Tag = newContentSnippet.Code };
@@ -607,7 +615,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
             tvCodeItems.Invoke(new Action(() =>
             {
                 tvCodeItems.Nodes.Clear();
-                DisplayCodeItems(portalItems, IsLegacyPortal);
+                DisplayCodeItems(portalItems, IsLegacyPortal, UseEnhancedDataModel);
             }));
         }
 

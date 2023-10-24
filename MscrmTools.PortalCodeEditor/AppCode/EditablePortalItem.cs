@@ -75,9 +75,9 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             return EscapeForFileName(Name);
         }
 
-        public abstract string RefreshContent(CodeItem item, IOrganizationService service);
+        public abstract string RefreshContent(CodeItem item, IOrganizationService service, bool isEnhancedModel);
 
-        public abstract void Update(IOrganizationService service, bool forceUpdate = false);
+        public abstract void Update(IOrganizationService service, bool forceUpdate, bool isEnhancedModel);
 
         /// <summary>
         /// Write the contents of the code object to disk

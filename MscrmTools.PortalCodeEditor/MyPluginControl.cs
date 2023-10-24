@@ -55,7 +55,7 @@ namespace MscrmTools.PortalCodeEditor
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
             //Loads or creates the settings for the plugin
-            if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
+            if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings, ConnectionDetail.ConnectionName))
             {
                 mySettings = new Settings();
             }
@@ -69,7 +69,7 @@ namespace MscrmTools.PortalCodeEditor
         private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
         {
             // Before leaving, save the settings
-            SettingsManager.Instance.Save(GetType(), mySettings);
+            SettingsManager.Instance.Save(GetType(), mySettings, ConnectionDetail.ConnectionName);
         }
 
         #endregion This events
@@ -95,7 +95,7 @@ namespace MscrmTools.PortalCodeEditor
                 {
                     foreach (var item in epi.Items)
                     {
-                        item.Refresh(Service);
+                        item.Refresh(Service, mySettings.UseEnhancedDataModel);
 
                         foreach (var page in dpMain.Contents.OfType<CodeEditorForm>().Where(c => c.Item == item))
                         {
@@ -107,7 +107,7 @@ namespace MscrmTools.PortalCodeEditor
                 {
                     if (refreshArgs.Item is CodeItem ci)
                     {
-                        ci.Refresh(Service);
+                        ci.Refresh(Service, mySettings.UseEnhancedDataModel);
 
                         foreach (var page in dpMain.Contents.OfType<CodeEditorForm>().Where(c => c.Item == ci))
                         {
@@ -149,7 +149,7 @@ namespace MscrmTools.PortalCodeEditor
                 Message = "Loading portal items...",
                 Work = (bw, e) =>
                 {
-                    LoadPortalItems(bw, isLegacyPortal);
+                    LoadPortalItems(bw, isLegacyPortal, mySettings.UseEnhancedDataModel);
                 },
                 ProgressChanged = e =>
                 {
@@ -160,7 +160,7 @@ namespace MscrmTools.PortalCodeEditor
                     // handle any errors returned
                     this.HandlLoadPortalItemErrors(e);
 
-                    ctvf.DisplayCodeItems(portalItems, isLegacyPortal);
+                    ctvf.DisplayCodeItems(portalItems, isLegacyPortal, mySettings.UseEnhancedDataModel);
                     ctvf.Enabled = true;
                 }
             });
@@ -185,6 +185,15 @@ namespace MscrmTools.PortalCodeEditor
                     MessageBox.Show(this, message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     LogError(message);
                 }
+                else if (((FaultException<OrganizationServiceFault>)e.Error).Detail.ErrorCode == -2147217150)
+                {
+                    var result = MessageBox.Show(this, "Cannot find standard portal tables, would you like to try to retrieve Power Pages enhanced data model?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if(result == DialogResult.Yes)
+                    {
+                        mySettings.UseEnhancedDataModel = true;
+                        tsbLoadItems_Click(tsbLoadItems, new EventArgs());
+                    }
+                }
                 else
                 {
                     MessageBox.Show(this, $"An error occured while loading code items: {e.Error.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -197,25 +206,25 @@ namespace MscrmTools.PortalCodeEditor
         /// Helper method for loading the portal items
         /// </summary>
         /// <param name="bw"></param>
-        private void LoadPortalItems(BackgroundWorker bw, bool isLegacyPortal)
+        private void LoadPortalItems(BackgroundWorker bw, bool isLegacyPortal, bool useEnhancedDataModel)
         {
             portalItems = new List<EditablePortalItem>();
             bw.ReportProgress(0, "Loading Web pages...");
-            portalItems.AddRange(WebPage.GetItems(Service));
+            portalItems.AddRange(WebPage.GetItems(Service, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Entity forms...");
-            portalItems.AddRange(EntityForm.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(EntityForm.GetItems(Service, ref isLegacyPortal, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Entity lists...");
-            portalItems.AddRange(EntityList.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(EntityList.GetItems(Service, ref isLegacyPortal, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Web templates...");
-            portalItems.AddRange(WebTemplate.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(WebTemplate.GetItems(Service, ref isLegacyPortal, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Web files...");
-            portalItems.AddRange(WebFile.GetItems(Service));
+            portalItems.AddRange(WebFile.GetItems(Service, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Web form steps...");
-            portalItems.AddRange(WebFormStep.GetItems(Service));
+            portalItems.AddRange(WebFormStep.GetItems(Service, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Content Snippets...");
-            portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal, useEnhancedDataModel));
             bw.ReportProgress(0, "Loading Publishing States...");
-            ctvf.PublishingStates = Service.RetrieveMultiple(new QueryExpression("adx_publishingstate")
+            ctvf.PublishingStates = Service.RetrieveMultiple(new QueryExpression($"{(mySettings.UseEnhancedDataModel ? "mspp" : "adx")}_publishingstate")
             {
                 ColumnSet = new ColumnSet(true)
             }).Entities.ToList();
@@ -223,7 +232,7 @@ namespace MscrmTools.PortalCodeEditor
             if (!isLegacyPortal)
             {
                 bw.ReportProgress(0, "Loading Portal languages...");
-                ctvf.Languages = Service.RetrieveMultiple(new QueryExpression("adx_websitelanguage")
+                ctvf.Languages = Service.RetrieveMultiple(new QueryExpression($"{(mySettings.UseEnhancedDataModel ? "mspp" : "adx")}_websitelanguage")
                 {
                     ColumnSet = new ColumnSet(true)
                 }).Entities.ToList();
@@ -343,7 +352,7 @@ namespace MscrmTools.PortalCodeEditor
                         bw.ReportProgress(0, $"Updating {item.GetType().Name} \"{item.Name}\"");
                         try
                         {
-                            item.Update(Service, mySettings.ForceUpdate);
+                            item.Update(Service, mySettings.ForceUpdate, mySettings.UseEnhancedDataModel);
                         }
                         catch (FaultException<OrganizationServiceFault> error)
                         {
@@ -772,7 +781,7 @@ namespace MscrmTools.PortalCodeEditor
                 Work = (bw, e) =>
                 {
                     // load all the portal content again, just in case changes have been made
-                    LoadPortalItems(bw, isLegacyPortal);
+                    LoadPortalItems(bw, isLegacyPortal, mySettings.UseEnhancedDataModel);
                 },
                 ProgressChanged = e =>
                 {

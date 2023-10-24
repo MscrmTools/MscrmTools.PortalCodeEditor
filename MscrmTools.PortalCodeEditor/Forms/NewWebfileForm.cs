@@ -10,24 +10,26 @@ namespace MscrmTools.PortalCodeEditor.Forms
 {
     public partial class NewWebfileForm : Form
     {
+        private readonly bool isEnhancedModel;
         private readonly List<Entity> publishStates;
         private readonly IOrganizationService service;
         private readonly EntityReference websiteReference;
 
-        public NewWebfileForm(IOrganizationService service, EntityReference websiteReference, List<Entity> publishStates)
+        public NewWebfileForm(IOrganizationService service, EntityReference websiteReference, List<Entity> publishStates, bool isEnhancedModel)
         {
             InitializeComponent();
 
             this.service = service;
             this.websiteReference = websiteReference;
+            this.isEnhancedModel = isEnhancedModel;
             this.publishStates = publishStates;
 
             if (publishStates?.Count > 0)
             {
                 cbbPublishStates.Items.AddRange
                 (publishStates.Where(l =>
-                        l.GetAttributeValue<EntityReference>("adx_websiteid").Id == websiteReference.Id)
-                    .Select(l => l.GetAttributeValue<string>("adx_name")).Cast<object>().ToArray());
+                        l.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_websiteid").Id == websiteReference.Id)
+                    .Select(l => l.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name")).Cast<object>().ToArray());
                 cbbPublishStates.SelectedIndex = 0;
             }
             else
@@ -73,21 +75,21 @@ namespace MscrmTools.PortalCodeEditor.Forms
             Entity webFile = null;
             try
             {
-                webFile = new Entity("adx_webfile")
+                webFile = new Entity($"{(isEnhancedModel ? "mspp" : "adx")}_webfile")
                 {
                     Attributes =
                     {
-                        {"adx_name", txtName.Text},
-                        {"adx_websiteid", websiteReference.Id == Guid.Empty ? null : websiteReference},
-                        {"adx_partialurl", txtName.Text}
+                        {$"{(isEnhancedModel ? "mspp": "adx")}_name", txtName.Text},
+                        {$"{(isEnhancedModel ? "mspp": "adx")}_websiteid", websiteReference.Id == Guid.Empty ? null : websiteReference},
+                        {$"{(isEnhancedModel ? "mspp": "adx")}_partialurl", txtName.Text}
                     }
                 };
 
                 if (cbbPublishStates.SelectedItem != null)
                 {
-                    webFile["adx_publishingstateid"] = publishStates.First(l =>
-                            l.GetAttributeValue<EntityReference>("adx_websiteid").Id == websiteReference.Id &&
-                            l.GetAttributeValue<string>("adx_name") == cbbPublishStates.SelectedItem.ToString())
+                    webFile[$"{(isEnhancedModel ? "mspp" : "adx")}_publishingstateid"] = publishStates.First(l =>
+                             l.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_websiteid").Id == websiteReference.Id &&
+                             l.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name") == cbbPublishStates.SelectedItem.ToString())
                         .ToEntityReference();
                 }
 

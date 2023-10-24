@@ -12,9 +12,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
     public class ContentSnippet : EditablePortalItem
     {
         #region Constants
+
         public const string NODEKEY = "ContentSnippet";
         public const string NODENAME = "Content Snippets";
-        #endregion
+
+        #endregion Constants
 
         #region Variables
 
@@ -24,14 +26,14 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Constructor
 
-        public ContentSnippet(Entity record)
+        public ContentSnippet(Entity record, bool isEnhancedModel)
         {
             Id = record.Id;
-            Code = new CodeItem(record.GetAttributeValue<string>("adx_value"), CodeItemType.JavaScript, false, this);
-            Name = record.GetAttributeValue<string>("adx_name");
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ?? new EntityReference("adx_website", Guid.Empty);
+            Code = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_value"), CodeItemType.JavaScript, false, this);
+            Name = record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name");
+            WebsiteReference = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_websiteid") ?? new EntityReference($"{(isEnhancedModel ? "mspp" : "adx")}_website", Guid.Empty);
 
-            Type = record.GetAttributeValue<OptionSetValue>("adx_type")?.Value == 756150000 ? "Text" : "Html";
+            Type = record.GetAttributeValue<OptionSetValue>($"{(isEnhancedModel ? "mspp" : "adx")}_type")?.Value == 756150000 ? "Text" : "Html";
             innerRecord = record;
             Items.Add(Code);
         }
@@ -47,45 +49,45 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<ContentSnippet> GetItems(IOrganizationService service, ref bool isLegacyPortal)
+        public static List<ContentSnippet> GetItems(IOrganizationService service, ref bool isLegacyPortal, bool isEnhancedModel)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_contentsnippet")
+                var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_contentsnippet")
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_value", "adx_type", "adx_websiteid"),
-                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_value", $"{(isEnhancedModel ? "mspp" : "adx")}_type", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid"),
+                    Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                 }).Entities;
 
-                return records.Select(record => new ContentSnippet(record)).ToList();
+                return records.Select(record => new ContentSnippet(record, isEnhancedModel)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
                 if (ex.Detail.ErrorCode == -2147217149)
                 {
                     isLegacyPortal = true;
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_webtemplate")
+                    var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webtemplate")
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_value", "adx_type", "adx_websiteid"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_value", $"{(isEnhancedModel ? "mspp" : "adx")}_type", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid"),
+                        Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                     }).Entities;
-                    return records.Select(record => new ContentSnippet(record)).ToList();
+                    return records.Select(record => new ContentSnippet(record, isEnhancedModel)).ToList();
                 }
                 throw;
             }
         }
 
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
+        public override string RefreshContent(CodeItem item, IOrganizationService service, bool isEnhancedModel)
         {
             var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-                new ColumnSet("adx_value"));
+                new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_value"));
             innerRecord.RowVersion = record.RowVersion;
-            return record.GetAttributeValue<string>("adx_value");
+            return record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_value");
         }
 
-        public override void Update(IOrganizationService service, bool forceUpdate = false)
+        public override void Update(IOrganizationService service, bool forceUpdate, bool isEnhancedModel)
         {
-            innerRecord["adx_value"] = Code.Content;
+            innerRecord[$"{(isEnhancedModel ? "mspp" : "adx")}_value"] = Code.Content;
             var updateRequest = new UpdateRequest
             {
                 ConcurrencyBehavior = forceUpdate ? ConcurrencyBehavior.AlwaysOverwrite : ConcurrencyBehavior.IfRowVersionMatches,
@@ -97,6 +99,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Code.State = CodeItemState.None;
             HasPendingChanges = false;
         }
+
         /// <summary>
         /// Write the code item Content to disk
         /// </summary>

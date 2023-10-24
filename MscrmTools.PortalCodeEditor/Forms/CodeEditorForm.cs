@@ -674,7 +674,7 @@ namespace MscrmTools.PortalCodeEditor.Forms
             }
             else if (e.ClickedItem == tsbGetLatestVersion)
             {
-                item.Refresh(service);
+                item.Refresh(service, mySettings.UseEnhancedDataModel);
                 RefreshContent(item.Content);
             }
         }

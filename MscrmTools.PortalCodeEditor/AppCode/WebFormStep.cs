@@ -26,15 +26,15 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Constructor
 
-        public WebFormStep(Entity record)
+        public WebFormStep(Entity record, bool isEnhancedModel)
         {
             Id = record.Id;
-            JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_registerstartupscript"), CodeItemType.JavaScript, false, this);
-            Name = record.GetAttributeValue<string>("adx_name");
-            WebFormReference = record.GetAttributeValue<EntityReference>("adx_webform");
+            JavaScript = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript"), CodeItemType.JavaScript, false, this);
+            Name = record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name");
+            WebFormReference = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp_webform" : "adx_webformid")}");
 
-            WebsiteReference = record.GetAliasedValue<EntityReference>("webform", "adx_websiteid") ??
-                                   new EntityReference("adx_website", Guid.Empty);
+            WebsiteReference = record.GetAliasedValue<EntityReference>("webform", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid") ??
+                                   new EntityReference($"{(isEnhancedModel ? "mspp" : "adx")}_website", Guid.Empty);
 
             innerRecord = record;
             Items.Add(JavaScript);
@@ -52,59 +52,72 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebFormStep> GetItems(IOrganizationService service)
+        public static List<WebFormStep> GetItems(IOrganizationService service, bool isEnhancedModel)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webformstep")
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
-                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) },
+                    ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript", $"{(isEnhancedModel ? "mspp" : "adx")}_webform"),
+                    Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) },
                     LinkEntities =
                 {
                     new LinkEntity
                     {
-                        LinkFromEntityName = "adx_webformstep",
-                        LinkFromAttributeName = "adx_webform",
-                        LinkToAttributeName = "adx_webformid",
-                        LinkToEntityName = "adx_webform",
-                        Columns = new ColumnSet("adx_websiteid"),
+                        LinkFromEntityName = $"{(isEnhancedModel ? "mspp": "adx")}_webformstep",
+                        LinkFromAttributeName = $"{(isEnhancedModel ? "mspp_webform" : "adx_webform")}",
+                        LinkToAttributeName = $"{(isEnhancedModel ? "mspp": "adx")}_webformid",
+                        LinkToEntityName = $"{(isEnhancedModel ? "mspp": "adx")}_webform",
+                        Columns = new ColumnSet($"{(isEnhancedModel ? "mspp": "adx")}_websiteid"),
                         EntityAlias = "webform"
                     }
                 }
                 }).Entities;
 
-                return records.Select(record => new WebFormStep(record)).ToList();
+                if (isEnhancedModel)
+                {
+                    var webforms = service.RetrieveMultiple(new QueryExpression("mspp_webform")
+                    {
+                        ColumnSet = new ColumnSet("mspp_websiteid", "msp_webformid")
+                    }).Entities;
+
+                    foreach (var record in records)
+                    {
+                        record["webform.mspp_websiteid"] = new AliasedValue("webform", "mspp_websiteid", webforms.First(wf => wf.Id == record.GetAttributeValue<EntityReference>("mspp_webform").Id).GetAttributeValue<EntityReference>("mspp_websiteid"));
+                    }
+                }
+
+                return records.Select(record => new WebFormStep(record, isEnhancedModel)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
                 if (ex.Detail.ErrorCode == -2147217149)
                 {
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                    var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webformstep")
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript", $"{(isEnhancedModel ? "mspp" : "adx")}_webform"),
+                        Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                     }).Entities;
 
-                    return records.Select(record => new WebFormStep(record)).ToList();
+                    return records.Select(record => new WebFormStep(record, isEnhancedModel)).ToList();
                 }
                 throw;
             }
         }
 
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
+        public override string RefreshContent(CodeItem item, IOrganizationService service, bool isEnhancedModel)
         {
             var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-                new ColumnSet("adx_registerstartupscript"));
+                new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript"));
 
             innerRecord.RowVersion = record.RowVersion;
 
-            return record.GetAttributeValue<string>("adx_registerstartupscript");
+            return record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript");
         }
 
-        public override void Update(IOrganizationService service, bool forceUpdate = false)
+        public override void Update(IOrganizationService service, bool forceUpdate, bool isEnhancedModel)
         {
-            innerRecord["adx_registerstartupscript"] = JavaScript.Content;
+            innerRecord[$"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript"] = JavaScript.Content;
 
             var updateRequest = new UpdateRequest
             {

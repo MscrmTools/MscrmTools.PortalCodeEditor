@@ -26,23 +26,23 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Constructor
 
-        public WebPage(Entity record, bool isLegacyPortal)
+        public WebPage(Entity record, bool isLegacyPortal, bool isEnhancedModel)
         {
             Id = record.Id;
 
-            Copy = new CodeItem(record.GetAttributeValue<string>("adx_copy"), CodeItemType.LiquidTemplate, false, this);
-            JavaScript = new CodeItem(record.GetAttributeValue<string>("adx_customjavascript"), CodeItemType.JavaScript, false, this);
-            Style = new CodeItem(record.GetAttributeValue<string>("adx_customcss"), CodeItemType.Style, false, this);
-            IsRoot = record.GetAttributeValue<bool>("adx_isroot");
+            Copy = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : $"{(isEnhancedModel ? "mspp" : "adx")}")}_copy"), CodeItemType.LiquidTemplate, false, this);
+            JavaScript = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_customjavascript"), CodeItemType.JavaScript, false, this);
+            Style = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_customcss"), CodeItemType.Style, false, this);
+            IsRoot = record.GetAttributeValue<bool>($"{(isEnhancedModel ? "mspp" : "adx")}_isroot");
 
-            PartialUrl = record.GetAttributeValue<string>("adx_partialurl");
+            PartialUrl = record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_partialurl");
 
-            ParentPageId = record.GetAttributeValue<EntityReference>("adx_rootwebpageid")?.Id ?? Guid.Empty;
-            Language = record.GetAttributeValue<EntityReference>("adx_webpagelanguageid")?.Name ?? "no language";
-            Name = $"{record.GetAttributeValue<string>("adx_name")}{(IsRoot || isLegacyPortal ? "" : " (" + Language + ")")}";
+            ParentPageId = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_rootwebpageid")?.Id ?? Guid.Empty;
+            Language = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_webpagelanguageid")?.Name ?? "no language";
+            Name = $"{record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name")}{(IsRoot || isLegacyPortal ? "" : " (" + Language + ")")}";
 
-            WebsiteReference = record.GetAttributeValue<EntityReference>("adx_websiteid") ??
-                               new EntityReference("adx_website", Guid.Empty);
+            WebsiteReference = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_websiteid") ??
+                               new EntityReference($"{(isEnhancedModel ? "mspp" : "adx")}_website", Guid.Empty);
 
             innerRecord = record;
 
@@ -67,53 +67,55 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebPage> GetItems(IOrganizationService service)
+        public static List<WebPage> GetItems(IOrganizationService service, bool isEnhancedModel)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webpage")
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot", "adx_partialurl", "adx_copy"),
-                    Orders = { new OrderExpression("adx_isroot", OrderType.Descending), new OrderExpression("adx_name", OrderType.Ascending) }
+                    ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_customjavascript", $"{(isEnhancedModel ? "mspp" : "adx")}_customcss", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid", $"{(isEnhancedModel ? "mspp" : "adx")}_webpagelanguageid", $"{(isEnhancedModel ? "mspp" : "adx")}_rootwebpageid", $"{(isEnhancedModel ? "mspp" : "adx")}_isroot", $"{(isEnhancedModel ? "mspp" : "adx")}_partialurl", $"{(isEnhancedModel ? "mspp" : "adx")}_copy"),
+                    Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_isroot", OrderType.Descending), new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                 }).Entities;
 
-                return records.Select(record => new WebPage(record, false)).ToList();
+                return records.Select(record => new WebPage(record, false, isEnhancedModel))
+                    .OrderByDescending(e => e.innerRecord.GetAttributeValue<bool>($"{(isEnhancedModel ? "mspp" : "adx")}_isroot"))
+                    .ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
                 if (ex.Detail.ErrorCode == -2147217149)
                 {
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                    var records = service.RetrieveMultiple(new QueryExpression($"{(isEnhancedModel ? "mspp" : "adx")}_webpage")
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_partialurl"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        ColumnSet = new ColumnSet($"{(isEnhancedModel ? "mspp" : "adx")}_name", $"{(isEnhancedModel ? "mspp" : "adx")}_customjavascript", $"{(isEnhancedModel ? "mspp" : "adx")}_customcss", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid", $"{(isEnhancedModel ? "mspp" : "adx")}_partialurl"),
+                        Orders = { new OrderExpression($"{(isEnhancedModel ? "mspp" : "adx")}_name", OrderType.Ascending) }
                     }).Entities;
 
-                    return records.Select(record => new WebPage(record, true)).ToList();
+                    return records.Select(record => new WebPage(record, true, isEnhancedModel)).ToList();
                 }
                 throw;
             }
         }
 
-        public override string RefreshContent(CodeItem item, IOrganizationService service)
+        public override string RefreshContent(CodeItem item, IOrganizationService service, bool isEnhancedModel)
         {
             var record = service.Retrieve(innerRecord.LogicalName, innerRecord.Id,
-                new ColumnSet(item.Type == CodeItemType.JavaScript ? "adx_customjavascript" : item.Type == CodeItemType.Style ? "adx_customcss" : "adx_copy"));
+                new ColumnSet(item.Type == CodeItemType.JavaScript ? $"{(isEnhancedModel ? "mspp" : "adx")}_customjavascript" : item.Type == CodeItemType.Style ? $"{(isEnhancedModel ? "mspp" : "adx")}_customcss" : $"{(isEnhancedModel ? "mspp" : "adx")}_copy"));
 
             innerRecord.RowVersion = record.RowVersion;
 
             return item.Type == CodeItemType.JavaScript
-                ? record.GetAttributeValue<string>("adx_customjavascript")
+                ? record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_customjavascript")
                 : item.Type == CodeItemType.Style
-                    ? record.GetAttributeValue<string>("adx_customcss")
-                    : record.GetAttributeValue<string>("adx_copy");
+                    ? record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_customcss")
+                    : record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_copy");
         }
 
-        public override void Update(IOrganizationService service, bool forceUpdate = false)
+        public override void Update(IOrganizationService service, bool forceUpdate, bool isEnhancedModel)
         {
-            innerRecord["adx_copy"] = Copy.Content;
-            innerRecord["adx_customjavascript"] = JavaScript.Content;
-            innerRecord["adx_customcss"] = Style.Content;
+            innerRecord[$"{(isEnhancedModel ? "mspp" : "adx")}_copy"] = Copy.Content;
+            innerRecord[$"{(isEnhancedModel ? "mspp" : "adx")}_customjavascript"] = JavaScript.Content;
+            innerRecord[$"{(isEnhancedModel ? "mspp" : "adx")}_customcss"] = Style.Content;
 
             var updateRequest = new UpdateRequest
             {

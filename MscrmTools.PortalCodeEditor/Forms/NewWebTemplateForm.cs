@@ -6,15 +6,17 @@ namespace MscrmTools.PortalCodeEditor.Forms
 {
     public partial class NewWebTemplateForm : Form
     {
+        private readonly bool isEnhancedModel;
         private readonly IOrganizationService service;
         private readonly EntityReference websiteReference;
 
-        public NewWebTemplateForm(IOrganizationService service, EntityReference websiteReference)
+        public NewWebTemplateForm(IOrganizationService service, EntityReference websiteReference, bool isEnhancedModel)
         {
             InitializeComponent();
 
             this.service = service;
             this.websiteReference = websiteReference;
+            this.isEnhancedModel = isEnhancedModel;
         }
 
         public Entity Template { get; private set; }
@@ -37,18 +39,18 @@ namespace MscrmTools.PortalCodeEditor.Forms
 
             try
             {
-                Template = new Entity("adx_webtemplate")
+                Template = new Entity($"{(isEnhancedModel ? "mspp" : "adx")}_webtemplate")
                 {
                     Attributes =
                     {
-                        {"adx_name", txtName.Text},
-                        {"adx_mimetype", txtMimeType.Text}
+                        {$"{(isEnhancedModel ? "mspp": "adx")}_name", txtName.Text},
+                        {$"{(isEnhancedModel ? "mspp": "adx")}_mimetype", txtMimeType.Text}
                     }
                 };
 
                 if (websiteReference != null)
                 {
-                    Template["adx_websiteid"] = websiteReference;
+                    Template[$"{(isEnhancedModel ? "mspp" : "adx")}_websiteid"] = websiteReference;
                 }
                 Template.Id = service.Create(Template);
 
