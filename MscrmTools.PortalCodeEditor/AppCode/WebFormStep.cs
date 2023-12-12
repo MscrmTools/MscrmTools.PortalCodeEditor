@@ -31,7 +31,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
             Id = record.Id;
             JavaScript = new CodeItem(record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_registerstartupscript"), CodeItemType.JavaScript, false, this);
             Name = record.GetAttributeValue<string>($"{(isEnhancedModel ? "mspp" : "adx")}_name");
-            WebFormReference = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp_webform" : "adx_webformid")}");
+            WebFormReference = record.GetAttributeValue<EntityReference>($"{(isEnhancedModel ? "mspp" : "adx")}_webform");
 
             WebsiteReference = record.GetAliasedValue<EntityReference>("webform", $"{(isEnhancedModel ? "mspp" : "adx")}_websiteid") ??
                                    new EntityReference($"{(isEnhancedModel ? "mspp" : "adx")}_website", Guid.Empty);
